@@ -1,0 +1,65 @@
+# ---- OS / Editor ------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.orig
+.idea/
+.vscode/
+
+# ---- Node / Package managers ------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+
+# ---- Build outputs (Vite / bundlers) ----------------
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# ---- Cache / Temp -----------------------------------
+.cache/
+.tmp/
+temp/
+tmp/
+vite.cache/
+vite-temp/
+.eslintcache
+.stylelintcache
+
+# ---- Env (keep templates like .env.example) ---------
+.env
+.env.*.local
+!.env.example
+
+# ---- Test artifacts (結果はGitに含めない) -----------
+coverage/
+.nyc_output/
+# Vitest / Jest reports
+test-results/
+junit.xml
+*.lcov
+# Playwright / Puppeteer (使う場合)
+playwright-report/
+test-results.json
+# Generic logs
+*.log
+
+# ---- Misc tools -------------------------------------
+# Type checker / language servers
+.tsbuildinfo
+# Storybook (使う場合)
+storybook-static/
+
+# ---- Assets build artifacts (生成物のみ) ------------
+# 例：自動生成した最適化ファイルを除外（生素材は追跡）
+public/assets/generated/
+public/assets/**/_cache/
+
+# ---- OS-specific metadata in subfolders -------------
+**/.DS_Store
+**/Thumbs.db
