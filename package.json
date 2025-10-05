@@ -2,6 +2,23 @@
     "name": "calc-invaders",
     "type": "module",
     "scripts": {
-      "build:stages": "node ./scripts/buildStages.js"
-    }
+        "build:stages": "node ./scripts/buildStages.js"
+    },
+    "version": "1.0.0",
+    "description": "",
+    "main": "vite.config.js",
+    "directories": {
+        "doc": "docs"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/shimimasa/calc-invaders.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/shimimasa/calc-invaders/issues"
+    },
+    "homepage": "https://github.com/shimimasa/calc-invaders#readme"
 }
