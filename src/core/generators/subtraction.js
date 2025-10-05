@@ -11,9 +11,9 @@ export function generate(rank, count) {
         results.push({ formula: `${a} - ${b}`, answer: a - b });
       }
     } else if (rank === 2) {
-      // 1桁−1桁, 結果≥0, 1の位で必ず借位
-      const a = randInt(1, 9); // 0では借位が発生しないので1-9
-      const b = randInt(0, 9);
+      // 2桁−1桁, 結果≥0, 1の位で必ず借位
+      const a = randInt(10, 18);
+      const b = randInt(1, 9);
       if (a - b >= 0 && hasBorrow(a, b)) {
         results.push({ formula: `${a} - ${b}`, answer: a - b });
       }
