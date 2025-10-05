@@ -1,0 +1,30 @@
+{
+  "stageId": "spade_08",
+  "mark": "spade",
+  "operation": "subtraction",
+  "rank": 8,
+  "deckLabel": "♠8",
+  "targetGrade": "upper",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 1.9999999999999998,
+    "descendSpeed": 1.6400000000000001
+  },
+  "rules": {
+    "timeLimitSec": 84,
+    "lives": 3,
+    "scorePerHit": 140,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "3桁-3桁 (単一借位)",
+    "constraints": {
+      "aDigits": 3,
+      "bDigits": 3,
+      "forceBorrow": true,
+      "maxBorrowCount": 1
+    }
+  },
+  "preGenerated": []
+}

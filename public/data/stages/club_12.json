@@ -1,0 +1,28 @@
+{
+  "stageId": "club_12",
+  "mark": "club",
+  "operation": "multiplication",
+  "rank": 12,
+  "deckLabel": "♣12",
+  "targetGrade": "upper",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 1.5999999999999996,
+    "descendSpeed": 1.96
+  },
+  "rules": {
+    "timeLimitSec": 96,
+    "lives": 3,
+    "scorePerHit": 160,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "乗算チェーン (3項)",
+    "constraints": {
+      "operands": 3,
+      "maxResult": 10000
+    }
+  },
+  "preGenerated": []
+}

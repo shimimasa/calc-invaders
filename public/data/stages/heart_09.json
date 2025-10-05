@@ -1,0 +1,30 @@
+{
+  "stageId": "heart_09",
+  "mark": "heart",
+  "operation": "addition",
+  "rank": 9,
+  "deckLabel": "♡9",
+  "targetGrade": "upper",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 1.9,
+    "descendSpeed": 1.72
+  },
+  "rules": {
+    "timeLimitSec": 87,
+    "lives": 3,
+    "scorePerHit": 145,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "3桁+3桁 (複数繰上)",
+    "constraints": {
+      "aDigits": 3,
+      "bDigits": 3,
+      "forceCarry": true,
+      "minCarryCount": 2
+    }
+  },
+  "preGenerated": []
+}

@@ -1,0 +1,28 @@
+{
+  "stageId": "heart_13",
+  "mark": "heart",
+  "operation": "addition",
+  "rank": 13,
+  "deckLabel": "♡13",
+  "targetGrade": "upper",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 1.4999999999999998,
+    "descendSpeed": 2.04
+  },
+  "rules": {
+    "timeLimitSec": 99,
+    "lives": 3,
+    "scorePerHit": 165,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "四項加算",
+    "constraints": {
+      "operands": 4,
+      "aDigits": 2
+    }
+  },
+  "preGenerated": []
+}

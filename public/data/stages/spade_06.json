@@ -1,28 +1,29 @@
 {
-  "stageId": "spade_03",
+  "stageId": "spade_06",
   "mark": "spade",
   "operation": "subtraction",
-  "rank": 3,
-  "deckLabel": "♠3",
+  "rank": 6,
+  "deckLabel": "♠6",
   "targetGrade": "lower",
   "enemySet": {
     "rows": 2,
     "cols": 5,
-    "spawnIntervalSec": 2.5,
-    "descendSpeed": 1.24
+    "spawnIntervalSec": 2.1999999999999997,
+    "descendSpeed": 1.48
   },
   "rules": {
-    "timeLimitSec": 69,
+    "timeLimitSec": 78,
     "lives": 3,
-    "scorePerHit": 115,
+    "scorePerHit": 130,
     "comboBonus": true
   },
   "generator": {
-    "pattern": "2桁-2桁 (借位なし)",
+    "pattern": "2桁-2桁 (二段の借位)",
     "constraints": {
       "aDigits": 2,
       "bDigits": 2,
-      "noBorrow": true
+      "forceBorrow": true,
+      "minBorrowCount": 2
     }
   },
   "preGenerated": []

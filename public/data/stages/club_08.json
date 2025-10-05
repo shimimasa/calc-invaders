@@ -1,0 +1,34 @@
+{
+  "stageId": "club_08",
+  "mark": "club",
+  "operation": "multiplication",
+  "rank": 8,
+  "deckLabel": "♣8",
+  "targetGrade": "upper",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 1.9999999999999998,
+    "descendSpeed": 1.6400000000000001
+  },
+  "rules": {
+    "timeLimitSec": 84,
+    "lives": 3,
+    "scorePerHit": 140,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "2桁×2桁 (medium)",
+    "constraints": {
+      "aRange": [
+        10,
+        49
+      ],
+      "bRange": [
+        10,
+        49
+      ]
+    }
+  },
+  "preGenerated": []
+}

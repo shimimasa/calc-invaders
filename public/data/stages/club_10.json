@@ -1,28 +1,28 @@
 {
-  "stageId": "club_01",
+  "stageId": "club_10",
   "mark": "club",
   "operation": "multiplication",
-  "rank": 1,
-  "deckLabel": "♣1",
-  "targetGrade": "middle",
+  "rank": 10,
+  "deckLabel": "♣10",
+  "targetGrade": "upper",
   "enemySet": {
     "rows": 2,
     "cols": 5,
-    "spawnIntervalSec": 2.6999999999999997,
-    "descendSpeed": 1.08
+    "spawnIntervalSec": 1.7999999999999998,
+    "descendSpeed": 1.8
   },
   "rules": {
-    "timeLimitSec": 63,
+    "timeLimitSec": 90,
     "lives": 3,
-    "scorePerHit": 105,
+    "scorePerHit": 150,
     "comboBonus": true
   },
   "generator": {
-    "pattern": "九九 1-3段",
+    "pattern": "3桁×1桁",
     "constraints": {
       "aRange": [
-        1,
-        3
+        100,
+        999
       ],
       "bRange": [
         1,

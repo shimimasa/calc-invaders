@@ -3,32 +3,32 @@
   "mark": "diamond",
   "operation": "division",
   "rank": 2,
-  "deckLabel": "DIAMOND 02",
+  "deckLabel": "♦2",
   "targetGrade": "middle",
   "enemySet": {
     "rows": 2,
     "cols": 5,
-    "spawnIntervalSec": 2.6,
-    "descendSpeed": 1.1
+    "spawnIntervalSec": 2.5999999999999996,
+    "descendSpeed": 1.16
   },
   "rules": {
-    "timeLimitSec": 60,
+    "timeLimitSec": 66,
     "lives": 3,
-    "scorePerHit": 100,
+    "scorePerHit": 110,
     "comboBonus": true
   },
   "generator": {
-    "pattern": "九九範囲 余りあり",
+    "pattern": "表逆算 4-6",
     "constraints": {
-      "allowRemainder": true,
-      "aRange": [
-        10,
-        99
-      ],
       "bRange": [
-        2,
+        4,
+        6
+      ],
+      "qRange": [
+        1,
         9
-      ]
+      ],
+      "divisibleOnly": true
     }
   },
   "preGenerated": []

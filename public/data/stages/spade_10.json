@@ -1,0 +1,29 @@
+{
+  "stageId": "spade_10",
+  "mark": "spade",
+  "operation": "subtraction",
+  "rank": 10,
+  "deckLabel": "♠10",
+  "targetGrade": "upper",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 1.7999999999999998,
+    "descendSpeed": 1.8
+  },
+  "rules": {
+    "timeLimitSec": 90,
+    "lives": 3,
+    "scorePerHit": 150,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "4桁-4桁 (借位なし)",
+    "constraints": {
+      "aDigits": 4,
+      "bDigits": 4,
+      "noBorrow": true
+    }
+  },
+  "preGenerated": []
+}

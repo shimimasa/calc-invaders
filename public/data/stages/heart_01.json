@@ -3,27 +3,29 @@
   "mark": "heart",
   "operation": "addition",
   "rank": 1,
-  "deckLabel": "HEART 01",
+  "deckLabel": "♡1",
   "targetGrade": "lower",
   "enemySet": {
     "rows": 2,
     "cols": 5,
-    "spawnIntervalSec": 2.6,
-    "descendSpeed": 1.1
+    "spawnIntervalSec": 2.6999999999999997,
+    "descendSpeed": 1.08
   },
   "rules": {
-    "timeLimitSec": 60,
+    "timeLimitSec": 63,
     "lives": 3,
-    "scorePerHit": 100,
+    "scorePerHit": 105,
     "comboBonus": true
   },
   "generator": {
     "pattern": "1桁+1桁",
     "constraints": {
+      "aDigits": 1,
+      "bDigits": 1,
       "minA": 1,
-      "maxA": 8,
+      "maxA": 9,
       "minB": 1,
-      "maxB": 8,
+      "maxB": 9,
       "noCarry": true
     }
   },

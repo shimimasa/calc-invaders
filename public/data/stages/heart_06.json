@@ -1,28 +1,29 @@
 {
-  "stageId": "heart_03",
+  "stageId": "heart_06",
   "mark": "heart",
   "operation": "addition",
-  "rank": 3,
-  "deckLabel": "♡3",
+  "rank": 6,
+  "deckLabel": "♡6",
   "targetGrade": "lower",
   "enemySet": {
     "rows": 2,
     "cols": 5,
-    "spawnIntervalSec": 2.5,
-    "descendSpeed": 1.24
+    "spawnIntervalSec": 2.1999999999999997,
+    "descendSpeed": 1.48
   },
   "rules": {
-    "timeLimitSec": 69,
+    "timeLimitSec": 78,
     "lives": 3,
-    "scorePerHit": 115,
+    "scorePerHit": 130,
     "comboBonus": true
   },
   "generator": {
-    "pattern": "2桁+2桁",
+    "pattern": "2桁+2桁 (二段の繰上)",
     "constraints": {
       "aDigits": 2,
       "bDigits": 2,
-      "noCarry": true
+      "forceCarry": true,
+      "minCarryCount": 2
     }
   },
   "preGenerated": []

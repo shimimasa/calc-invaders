@@ -1,0 +1,29 @@
+{
+  "stageId": "spade_12",
+  "mark": "spade",
+  "operation": "subtraction",
+  "rank": 12,
+  "deckLabel": "♠12",
+  "targetGrade": "upper",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 1.5999999999999996,
+    "descendSpeed": 1.96
+  },
+  "rules": {
+    "timeLimitSec": 96,
+    "lives": 3,
+    "scorePerHit": 160,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "減算チェーン (3項)",
+    "constraints": {
+      "chain": true,
+      "operands": 3,
+      "resultNonNegative": true
+    }
+  },
+  "preGenerated": []
+}

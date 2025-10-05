@@ -1,0 +1,29 @@
+{
+  "stageId": "diamond_10",
+  "mark": "diamond",
+  "operation": "division",
+  "rank": 10,
+  "deckLabel": "♦10",
+  "targetGrade": "upper",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 1.7999999999999998,
+    "descendSpeed": 1.8
+  },
+  "rules": {
+    "timeLimitSec": 90,
+    "lives": 3,
+    "scorePerHit": 150,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "3桁÷2桁 (余りなし)",
+    "constraints": {
+      "aDigits": 3,
+      "bDigits": 2,
+      "divisibleOnly": true
+    }
+  },
+  "preGenerated": []
+}

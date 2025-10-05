@@ -1,0 +1,33 @@
+{
+  "stageId": "heart_05",
+  "mark": "heart",
+  "operation": "addition",
+  "rank": 5,
+  "deckLabel": "♡5",
+  "targetGrade": "lower",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 2.3,
+    "descendSpeed": 1.4
+  },
+  "rules": {
+    "timeLimitSec": 75,
+    "lives": 3,
+    "scorePerHit": 125,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "2桁+2桁 (10の位のみ繰上)",
+    "constraints": {
+      "aDigits": 2,
+      "bDigits": 2,
+      "forceCarry": true,
+      "carryPositions": [
+        "tens"
+      ],
+      "onesNoCarry": true
+    }
+  },
+  "preGenerated": []
+}

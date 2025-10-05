@@ -1,0 +1,29 @@
+{
+  "stageId": "diamond_08",
+  "mark": "diamond",
+  "operation": "division",
+  "rank": 8,
+  "deckLabel": "♦8",
+  "targetGrade": "upper",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 1.9999999999999998,
+    "descendSpeed": 1.6400000000000001
+  },
+  "rules": {
+    "timeLimitSec": 84,
+    "lives": 3,
+    "scorePerHit": 140,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "2桁÷2桁 (余りなし)",
+    "constraints": {
+      "aDigits": 2,
+      "bDigits": 2,
+      "divisibleOnly": true
+    }
+  },
+  "preGenerated": []
+}
