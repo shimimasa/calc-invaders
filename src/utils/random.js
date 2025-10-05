@@ -25,3 +25,68 @@ export function hasBorrow(a,b){ return ((a%10)-(b%10))<0 }
  */
 export function isDivisible(a,b){ return b!==0 && a%b===0 }
 
+// ---- Helpers for generators (multi-digit) ----
+export function digitCount(n){ return Math.max(1, Math.floor(Math.log10(Math.max(1, Math.abs(n)))) + 1); }
+export function toDigitsLE(n, width){
+  const ds = [];
+  let x = Math.abs(n);
+  for (let i=0;i<width;i++){ ds.push(x%10); x = Math.floor(x/10); }
+  return ds;
+}
+export function fromDigitsLE(ds){
+  let v = 0, mul = 1;
+  for (let i=0;i<ds.length;i++){ v += ds[i]*mul; mul *= 10; }
+  return v;
+}
+export function countCarriesAdd(addends){
+  let carry = 0, totalCarries = 0;
+  const maxW = Math.max(...addends.map(digitCount));
+  for (let pos=0; pos<maxW; pos++){
+    let s = carry;
+    for (const a of addends){ s += Math.floor(a/Math.pow(10,pos)) % 10; }
+    if (s >= 10) { totalCarries += 1; carry = Math.floor(s/10); } else { carry = 0; }
+  }
+  return totalCarries;
+}
+export function countBorrowsSub(a,b){
+  let borrow = 0, total = 0;
+  const maxW = Math.max(digitCount(a), digitCount(b));
+  for (let pos=0; pos<maxW; pos++){
+    const da = Math.floor(a/Math.pow(10,pos)) % 10;
+    const db = Math.floor(b/Math.pow(10,pos)) % 10;
+    const top = da - borrow;
+    if (top < db) { total += 1; borrow = 1; } else { borrow = 0; }
+  }
+  return total;
+}
+export function genTwoDigitNoCarry(){
+  // returns [a,b] in 10..99 with no carries
+  const aT = randInt(1,9); const bT = randInt(0, 9 - aT);
+  const aO = randInt(0,9); const bO = randInt(0, 9 - aO);
+  const a = aT*10 + aO; const b = bT*10 + bO;
+  return [a,b];
+}
+export function genTwoDigitOnesCarryOnly(){
+  // ones carry, tens no carry even with +1
+  const aO = randInt(1,9); const bO = randInt(10 - aO, 9);
+  const aT = randInt(1,8); // ensure room
+  const bT = randInt(0, 8 - aT); // aT + bT + 1 <= 9 => bT <= 8 - aT
+  const a = aT*10 + aO; const b = bT*10 + bO;
+  return [a,b];
+}
+export function genTwoDigitTensCarryOnly(){
+  // ones no carry, tens carry
+  const aO = randInt(0,9); const bO = randInt(0, 9 - aO);
+  const aT = randInt(1,9); const bT = randInt(10 - aT, 9);
+  const a = aT*10 + aO; const b = bT*10 + bO;
+  return [a,b];
+}
+export function genTwoDigitDoubleCarry(){
+  // ones carry, tens carry considering +1
+  const aO = randInt(1,9); const bO = randInt(10 - aO, 9);
+  const aT = randInt(1,9); const bT = randInt(Math.max(0, 9 - aT), 9); // ensure aT + bT + 1 >= 10
+  const a = aT*10 + aO; const b = bT*10 + bO;
+  if ( ((aO+bO)>=10) && ((aT+bT+1)>=10) ) return [a,b];
+  return genTwoDigitDoubleCarry();
+}
+

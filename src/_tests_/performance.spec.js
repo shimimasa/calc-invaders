@@ -13,11 +13,12 @@ describe("Performance - mixed generation", () => {
       { op: "multiplication", gen: genMul },
       { op: "division", gen: genDiv }
     ];
+    const ranks = [1,2,3,4,5,6,7,8,9,10,11,12,13];
     const t0 = Date.now();
     let total = 0;
     while (total < 500) {
       const { gen } = pick(ops);
-      const rank = pick([1, 2, 3]);
+      const rank = pick(ranks);
       const batch = gen(rank, 5);
       total += batch.length;
     }
