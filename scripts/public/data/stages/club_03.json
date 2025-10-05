@@ -1,0 +1,34 @@
+{
+  "stageId": "club_03",
+  "mark": "club",
+  "operation": "multiplication",
+  "rank": 3,
+  "deckLabel": "CLUB 03",
+  "targetGrade": "middle",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 2.6,
+    "descendSpeed": 1.1
+  },
+  "rules": {
+    "timeLimitSec": 60,
+    "lives": 3,
+    "scorePerHit": 100,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "九九 7-9段",
+    "constraints": {
+      "aRange": [
+        7,
+        9
+      ],
+      "bRange": [
+        1,
+        9
+      ]
+    }
+  },
+  "preGenerated": []
+}

@@ -1,0 +1,7 @@
+{
+    "name": "calc-invaders",
+    "type": "module",
+    "scripts": {
+      "build:stages": "node ./scripts/buildStages.js"
+    }
+}

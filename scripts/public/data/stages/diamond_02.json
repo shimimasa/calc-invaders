@@ -1,0 +1,35 @@
+{
+  "stageId": "diamond_02",
+  "mark": "diamond",
+  "operation": "division",
+  "rank": 2,
+  "deckLabel": "DIAMOND 02",
+  "targetGrade": "middle",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 2.6,
+    "descendSpeed": 1.1
+  },
+  "rules": {
+    "timeLimitSec": 60,
+    "lives": 3,
+    "scorePerHit": 100,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "九九範囲 余りあり",
+    "constraints": {
+      "allowRemainder": true,
+      "aRange": [
+        10,
+        99
+      ],
+      "bRange": [
+        2,
+        9
+      ]
+    }
+  },
+  "preGenerated": []
+}

@@ -1,0 +1,31 @@
+{
+  "stageId": "heart_01",
+  "mark": "heart",
+  "operation": "addition",
+  "rank": 1,
+  "deckLabel": "HEART 01",
+  "targetGrade": "lower",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 2.6,
+    "descendSpeed": 1.1
+  },
+  "rules": {
+    "timeLimitSec": 60,
+    "lives": 3,
+    "scorePerHit": 100,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "1桁+1桁",
+    "constraints": {
+      "minA": 1,
+      "maxA": 8,
+      "minB": 1,
+      "maxB": 8,
+      "noCarry": true
+    }
+  },
+  "preGenerated": []
+}
