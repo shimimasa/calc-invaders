@@ -1,0 +1,13 @@
+# PROJECT RULES (Calculation Invaders, JS only)
+- JavaScript (ESM). No TypeScript.
+- Follow .kiro/specs/calculation-invaders/{requirements.md,design.md,tasks.md,test-plan.md}.
+- Generators MUST obey Appendix A (52 ranks). Division = integers only; remainder supported.
+- M1 = playable with HEART 1–3, SPADE 1–3, CLUB 1–3, DIAMOND 1–3.
+- REQUIRED tests in M1:
+  - Generator constraint tests (100 samples/rank for ♡/♠/♣/♦ 1–3)
+  - Perf-01: 500 mixed questions < 500ms (local)
+- Keep generators pure & fast. Pre-generate rows*cols questions per stage.
+- Division (remainder ranks): return {answer, remainder}; UI accepts "商,余り" (comma or '、'), validate remainder < divisor.
+---
+alwaysApply: true
+---
