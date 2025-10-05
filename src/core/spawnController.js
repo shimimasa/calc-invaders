@@ -22,12 +22,16 @@
       state.lockEl = el && el.isConnected ? el : null;
       [...rootEl.children].forEach(c => c.classList.toggle("lock", c === state.lockEl));
      }
+    function clearLock() {
+      state.lockEl = null;
+      [...rootEl.children].forEach(c => c.classList.remove("lock"));
+    }
   
      function submit(raw) {
 
       // 選択が無い or 既に削除済み → 何もしない
       const b = state.lockEl;
-      if (!b || !b.isConnected) { state.lockEl = null; return false; }
+      if (!b || !b.isConnected || b.parentElement !== rootEl) { state.lockEl = null; return false; }
       const needRem = b.dataset.remainder != null;
   
        // 余り入力: "商,余り" or "商、余り"
@@ -53,6 +57,6 @@
        }
      }
   
-    return { lock: (iOrEl) => lock(iOrEl?.nodeType ? iOrEl : rootEl.children[iOrEl]), submit };
+    return { lock: (iOrEl) => lock(iOrEl?.nodeType ? iOrEl : rootEl.children[iOrEl]), submit, clear: () => clearLock(), getSelected: () => state.lockEl };
    }
   

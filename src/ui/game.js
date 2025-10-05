@@ -41,16 +41,43 @@ function init() {
     $answer.disabled = false;
     $fire.disabled = false;
   }
+  function setSelectionTextFrom(el){
+    if (!el) { $selected.textContent = "SELECTED: なし"; return; }
+    const f = el.textContent;
+    $selected.textContent = "SELECTED: " + f;
+  }
 
-  // ---- イベント結線 ----
+  // ---- クリック選択 ----
   $grid.addEventListener("click", (e) => {
     const btn = e.target.closest(".enemy");
     if (!btn) return;
-    const f = btn.textContent;
-    $selected.textContent = "SELECTED: " + f;
+    ctrl?.lock(btn);
+    setSelectionTextFrom(btn);
     $answer.focus();
   });
 
+  // ---- キーボード選択 (矢印/Enter/Esc) ----
+  document.addEventListener("keydown", (e) => {
+    const children = [...$grid.children];
+    if (children.length === 0) return;
+    const cols = 5; // index.html のグリッド列数に一致
+    const current = ctrl?.getSelected?.();
+    let idx = current ? children.indexOf(current) : -1;
+
+    if (e.key === "ArrowRight") { idx = Math.min(children.length - 1, (idx < 0 ? 0 : idx + 1)); }
+    else if (e.key === "ArrowLeft") { idx = Math.max(0, (idx < 0 ? 0 : idx - 1)); }
+    else if (e.key === "ArrowDown") { idx = Math.min(children.length - 1, (idx < 0 ? 0 : idx + cols)); }
+    else if (e.key === "ArrowUp") { idx = Math.max(0, (idx < 0 ? 0 : idx - cols)); }
+    else if (e.key === "Enter") { e.preventDefault(); return $fire.click(); }
+    else if (e.key === "Escape") { ctrl?.clear?.(); setSelectionTextFrom(null); return; }
+    else { return; }
+
+    e.preventDefault();
+    const el = children[idx];
+    if (el) { ctrl?.lock(el); setSelectionTextFrom(el); el.focus(); }
+  });
+
+  // ---- 判定 ----
   function fire() {
     const ok = ctrl?.submit($answer.value);
     if (ok) $answer.value = "";
@@ -58,6 +85,7 @@ function init() {
   $answer.addEventListener("keydown", (e) => { if (e.key === "Enter") fire(); });
   $fire.addEventListener("click", fire);
 
+  // ---- ステージ切替 ----
   $next.addEventListener("click", async () => {
     stagePtr = (stagePtr + 1) % stageIds.length;
     await startStage();
@@ -91,6 +119,7 @@ function init() {
           $selected.textContent = "SELECTED: なし";
           if ($grid.children.length === 0) {
             clearInterval(timerId);
+            timerId = null;
             disableControls("CLEAR! 次の面へ →");
           }
         },
@@ -99,6 +128,7 @@ function init() {
           $life.textContent = life;
           if (life <= 0) {
             clearInterval(timerId);
+            timerId = null;
             disableControls("GAME OVER…");
           }
         }
@@ -107,10 +137,11 @@ function init() {
       // タイマー
       clearInterval(timerId);
       timerId = setInterval(() => {
-        timeLeft -= 1;
+        timeLeft = Math.max(0, timeLeft - 1);
         $time.textContent = timeLeft;
         if (timeLeft <= 0) {
           clearInterval(timerId);
+          timerId = null;
           disableControls("TIME UP");
         }
       }, 1000);

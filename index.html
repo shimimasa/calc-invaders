@@ -11,6 +11,7 @@
     #grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:min(900px,95vw);margin:0 auto}
     .enemy{border:1px solid #31364b;border-radius:10px;min-height:64px;display:grid;place-items:center}
     .enemy.lock{outline:2px solid #3BE3FF}
+    .enemy:focus{outline:2px solid #8cd1ff; outline-offset: 2px}
     #panel{display:flex;gap:8px;justify-content:center;margin:14px}
     input{padding:8px 10px;font-size:18px;border-radius:8px;border:1px solid #31364b;min-width:220px}
     button{padding:8px 12px;border-radius:10px;border:1px solid #31364b;background:#1a2038;color:#e8e8e8;cursor:pointer}
@@ -27,7 +28,7 @@
   <div id="grid" aria-label="enemies grid"></div>
 
   <div id="panel">
-    <span id="selected">SELECTED: なし</span>
+    <span id="selected" aria-live="polite">SELECTED: なし</span>
     <input id="answer" placeholder="答え（余りは 12,3 のように）" />
     <button id="fire">発射</button>
     <button id="next">次の面</button>
