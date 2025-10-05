@@ -1,0 +1,35 @@
+{
+  "stageId": "diamond_03",
+  "mark": "diamond",
+  "operation": "division",
+  "rank": 3,
+  "deckLabel": "DIAMOND 03",
+  "targetGrade": "middle",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 2.6,
+    "descendSpeed": 1.1
+  },
+  "rules": {
+    "timeLimitSec": 60,
+    "lives": 3,
+    "scorePerHit": 100,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "2桁÷1桁 余りなし",
+    "constraints": {
+      "divisibleOnly": true,
+      "aRange": [
+        10,
+        99
+      ],
+      "bRange": [
+        2,
+        9
+      ]
+    }
+  },
+  "preGenerated": []
+}

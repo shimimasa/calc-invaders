@@ -3,12 +3,14 @@
     "type": "module",
     "version": "1.0.0",
     "scripts": {
+      "predev": "node ./scripts/buildStages.js",
       "dev": "vite",
+      "prebuild": "node ./scripts/buildStages.js",
       "build": "vite build",
       "build:stages": "node ./scripts/buildStages.js",
       "test": "vitest run",
       "test:watch": "vitest"
-    },
+  },
     "devDependencies": {
       "vite": "^5.0.0",
       "vitest": "^2.0.0"

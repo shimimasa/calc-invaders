@@ -1,0 +1,34 @@
+{
+  "stageId": "club_02",
+  "mark": "club",
+  "operation": "multiplication",
+  "rank": 2,
+  "deckLabel": "CLUB 02",
+  "targetGrade": "middle",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 2.6,
+    "descendSpeed": 1.1
+  },
+  "rules": {
+    "timeLimitSec": 60,
+    "lives": 3,
+    "scorePerHit": 100,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "九九 4-6段",
+    "constraints": {
+      "aRange": [
+        4,
+        6
+      ],
+      "bRange": [
+        1,
+        9
+      ]
+    }
+  },
+  "preGenerated": []
+}

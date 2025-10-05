@@ -26,7 +26,7 @@ let ctrl = null;
 
 async function startStage() {
   const id = stageIds[stagePtr];
-  const json = await (await fetch(`/public/data/stages/${id}.json`)).json();
+  const json = await (await fetch(`/data/stages/${id}.json`)).json();
   $stage.textContent = json.deckLabel;
   timeLeft = json.rules.timeLimitSec ?? 60;
   $time.textContent = timeLeft;

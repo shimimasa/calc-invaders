@@ -1,0 +1,31 @@
+{
+  "stageId": "spade_02",
+  "mark": "spade",
+  "operation": "subtraction",
+  "rank": 2,
+  "deckLabel": "SPADE 02",
+  "targetGrade": "lower",
+  "enemySet": {
+    "rows": 2,
+    "cols": 5,
+    "spawnIntervalSec": 2.6,
+    "descendSpeed": 1.1
+  },
+  "rules": {
+    "timeLimitSec": 60,
+    "lives": 3,
+    "scorePerHit": 100,
+    "comboBonus": true
+  },
+  "generator": {
+    "pattern": "1桁-1桁",
+    "constraints": {
+      "minA": 10,
+      "maxA": 18,
+      "minB": 1,
+      "maxB": 9,
+      "forceBorrow": true
+    }
+  },
+  "preGenerated": []
+}
