@@ -10,14 +10,26 @@ export function choice(arr) { return arr[Math.floor(Math.random()*arr.length)] }
  * 例: 8+5 は (8%10)+(5%10)=13 ≥ 10 なので true。
  * Ranks 1–3 では 1〜2桁+1桁の想定で、1の位のみを評価します。
  */
-export function hasCarry(a,b){ return ((a%10)+(b%10))>=10 }
+export function hasCarry(a, b){
+    const sa = String(a).split('').reverse();
+    const sb = String(b).split('').reverse();
+    const len = Math.max(sa.length, sb.length);
+    for (let i = 0; i < len; i++){
+      const da = (sa[i] ? sa[i].charCodeAt(0) - 48 : 0);
+      const db = (sb[i] ? sb[i].charCodeAt(0) - 48 : 0);
+      if (da + db >= 10) return true;
+    }
+    return false;
+  }
 /**
  * [hasBorrow]
  * 1の位で借位が必要かを判定します。
  * 例: 12-9 は (12%10)-(9%10)=3 なので false、8-9 は -1 < 0 なので true。
  * Ranks 1–3 では 1〜2桁−1桁の想定で、1の位のみを評価します。
  */
-export function hasBorrow(a,b){ return ((a%10)-(b%10))<0 }
+export function hasBorrow(a, b){
+    return ((a % 10) - (b % 10)) < 0;
+  }
 /**
  * [isDivisible]
  * b が 0 でなく、a が b で割り切れるか（余り0か）を判定します。
