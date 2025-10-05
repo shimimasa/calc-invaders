@@ -2,7 +2,7 @@ import { generate as genAdd } from "../core/generators/addition.js";
 import { generate as genSub } from "../core/generators/subtraction.js";
 import { generate as genMul } from "../core/generators/multiplication.js";
 import { hasCarry, hasBorrow } from "../utils/random.js";
-
+import { describe, test, expect } from "vitest";
 describe("Generators - HEART (addition)", () => {
   test("HEART 1: 100件、和≤9 & no carry", () => {
     const qs = genAdd(1, 100);

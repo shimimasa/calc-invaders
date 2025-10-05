@@ -2,7 +2,7 @@ import { generate as genAdd } from "../core/generators/addition.js";
 import { generate as genSub } from "../core/generators/subtraction.js";
 import { generate as genMul } from "../core/generators/multiplication.js";
 import { generate as genDiv } from "../core/generators/division.js";
-
+import { describe, test, expect } from "vitest";
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 describe("Performance - mixed generation", () => {

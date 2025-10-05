@@ -1,5 +1,5 @@
 import { generate as genDiv } from "../core/generators/division.js";
-
+import { describe, test, expect } from "vitest";
 describe("Generators - DIAMOND (division)", () => {
   test("DIAMOND 1: 100件、a%b===0、remainder未定義", () => {
     const qs = genDiv(1, 100);
