@@ -62,6 +62,14 @@ describe("questionBank - cache & precedence & warnings", () => {
     expect(count).toBe(1);
   });
 
+  test("未使用constraintキーは warn される（operation別）", () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const stage = makeStage({ stageId: "warn_unused", operation: "addition", extraConstraints: { qRange: [1,9] } });
+    loadStage(stage);
+    const msgs = spy.mock.calls.map(args => String(args[0])).join("\n");
+    expect(msgs).toMatch(/Unused constraint key for addition: qRange/);
+  });
+
   test("shuffle=true なら順序が変わり得る（長さは等しい）", () => {
     const stageBase = makeStage({ stageId: "shuffle_1", rows: 2, cols: 5 });
     const first = loadStage(stageBase);
@@ -72,6 +80,20 @@ describe("questionBank - cache & precedence & warnings", () => {
     // ほとんどのケースでfalseになるが、乱数で稀にtrueになることも許容
     // ここでは配列自体が新規インスタンスであることだけは保障
     expect(shuffled).not.toBe(first);
+  });
+});
+
+describe("questionBank - constraints passthrough (division allowRemainder)", () => {
+  test("allowRemainder:true で余り>0の問題が出る（rank 5/7/9/11/13 は余りありランク）", () => {
+    const ranks = [5,7,9,11,13];
+    for (const r of ranks){
+      const stage = makeStage({ stageId: `div_rem_${r}`, operation: "division", rank: r, rows: 2, cols: 5, extraConstraints: { allowRemainder: true } });
+      const qs = loadStage(stage);
+      expect(qs.length).toBe(stage.enemySet.rows * stage.enemySet.cols);
+      // 余り>0 の問題が少なくとも1つ含まれる（ジェネレーター全体は任意分布のため緩く検証）
+      const someHasRemainder = qs.some(q => typeof q.remainder === 'number' && q.remainder > 0);
+      expect(someHasRemainder).toBe(true);
+    }
   });
 });
 
