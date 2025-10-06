@@ -8,6 +8,8 @@
     <style>
     body{background:#0e1020;color:#e8e8e8;font-family:system-ui,ui-sans-serif}
     #top{display:flex;gap:16px;align-items:center;margin:12px}
+    #rank{padding:2px 6px;border:1px solid #31364b;border-radius:6px;background:#14182c;color:#9ecbff;font-size:12px}
+    #pattern{border-bottom:1px dotted #8cd1ff;cursor:help}
     #grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:min(900px,95vw);margin:0 auto}
     .enemy{border:1px solid #31364b;border-radius:10px;min-height:64px;display:grid;place-items:center}
     .enemy.lock{outline:2px solid #3BE3FF}
@@ -22,6 +24,7 @@
     <div>Score: <span id="score">0</span></div>
     <div>Life: <span id="life">3</span></div>
     <div>Stage: <span id="stage">♡1</span></div>
+    <div><span id="rank"></span> <small title="生成パターン"><span id="pattern"></span></small></div>
     <div>Time: <span id="time">60</span>s</div>
   </div>
 

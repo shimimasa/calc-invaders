@@ -14,6 +14,8 @@ function init() {
   const $time   = document.getElementById("time");
   const $stage  = document.getElementById("stage");
   const $selected = document.getElementById("selected");
+  const $rank   = document.getElementById("rank");
+  const $pattern = document.getElementById("pattern");
 
   if (!$grid || !$answer || !$fire || !$next || !$score || !$life || !$time || !$stage || !$selected) {
     console.error("必須DOMが見つかりません。index.html のIDを確認してください。");
@@ -70,6 +72,9 @@ function init() {
     else if (e.key === "ArrowUp") { idx = Math.max(0, (idx < 0 ? 0 : idx - cols)); }
     else if (e.key === "Enter") { e.preventDefault(); return $fire.click(); }
     else if (e.key === "Escape") { ctrl?.clear?.(); setSelectionTextFrom(null); return; }
+    else if (e.key === "[") { e.preventDefault(); stagePtr = (stagePtr - 1 + stageIds.length) % stageIds.length; return startStage(); }
+    else if (e.key === "]") { e.preventDefault(); stagePtr = (stagePtr + 1) % stageIds.length; return startStage(); }
+    else if (e.key?.toLowerCase() === "p") { e.preventDefault(); togglePause(); return; }
     else { return; }
 
     e.preventDefault();
@@ -81,6 +86,12 @@ function init() {
   function fire() {
     const ok = ctrl?.submit($answer.value);
     if (ok) $answer.value = "";
+  }
+  let isPaused = false;
+  function togglePause(){
+    isPaused = !isPaused;
+    if (isPaused) { ctrl?.pause?.(); disableControls("PAUSED"); }
+    else { ctrl?.resume?.(); enableControls(); }
   }
   $answer.addEventListener("keydown", (e) => { if (e.key === "Enter") fire(); });
   $fire.addEventListener("click", fire);
@@ -107,12 +118,19 @@ function init() {
       life = json.rules?.lives ?? 3;
       $life.textContent = life;
       $selected.textContent = "SELECTED: なし";
+      // rank表示とパターンツールチップ
+      const suitName = (json.mark === 'heart' ? 'HEART' : json.mark === 'spade' ? 'SPADE' : json.mark === 'club' ? 'CLUB' : json.mark === 'diamond' ? 'DIAMOND' : '').trim();
+      if ($rank) $rank.textContent = suitName && json.rank ? `${suitName} ${json.rank}` : '';
+      if ($pattern) $pattern.textContent = json.generator?.pattern ? String(json.generator.pattern) : '';
       enableControls();
 
       const questions = await loadStage(json);
       ctrl = spawnController({
         rootEl: $grid,
         questions,
+        cols: json.enemySet?.cols ?? 5,
+        descendSpeed: json.enemySet?.descendSpeed ?? 1,
+        spawnIntervalSec: json.enemySet?.spawnIntervalSec ?? 2.5,
         onCorrect() {
           score += (json.rules?.scorePerHit ?? 100);
           $score.textContent = score;
@@ -143,6 +161,7 @@ function init() {
           clearInterval(timerId);
           timerId = null;
           disableControls("TIME UP");
+          ctrl?.stop?.();
         }
       }, 1000);
     } catch (e) {
