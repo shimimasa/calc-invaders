@@ -9,7 +9,8 @@ export function getDefaultState(){
     lives: 3,
     flippedCards: [],
     incorrectFormulas: [],
-    audioSettings: { bgm: true, se: true, volume: 1 }
+    audioSettings: { bgm: true, se: true, volume: 1 },
+    unlockedSuits: { heart: true, spade: false, club: false, diamond: false }
   };
 }
 
@@ -26,6 +27,14 @@ function normalizeState(input){
     bgm: typeof a.bgm === 'boolean' ? a.bgm : base.audioSettings.bgm,
     se: typeof a.se === 'boolean' ? a.se : base.audioSettings.se,
     volume: Number.isFinite(a.volume) ? a.volume : base.audioSettings.volume
+  };
+  // unlocked suits
+  const u = input.unlockedSuits || {};
+  out.unlockedSuits = {
+    heart: typeof u.heart === 'boolean' ? u.heart : base.unlockedSuits.heart,
+    spade: typeof u.spade === 'boolean' ? u.spade : base.unlockedSuits.spade,
+    club: typeof u.club === 'boolean' ? u.club : base.unlockedSuits.club,
+    diamond: typeof u.diamond === 'boolean' ? u.diamond : base.unlockedSuits.diamond
   };
   // scalars
   out.score = Number.isFinite(input.score) ? input.score : base.score;
@@ -91,6 +100,13 @@ export function setAudioSettings(settings){
     volume: Number.isFinite(a.volume) ? a.volume : current.audioSettings.volume
   };
   return updateState({ audioSettings: next });
+}
+
+export function unlockSuit(suit){
+  const current = loadState();
+  const next = { ...current.unlockedSuits };
+  if (suit && Object.prototype.hasOwnProperty.call(next, suit)) next[suit] = true;
+  return updateState({ unlockedSuits: next });
 }
 
 
