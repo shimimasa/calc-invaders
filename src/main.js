@@ -1,7 +1,9 @@
 import { loadStage } from "./core/questionBank.js";
 import { spawnController } from "./core/spawnController.js";
 import { renderCardTower, markStageCleared } from "./ui/cardTower.js";
-import { loadState, updateState, setLastStageId } from "./core/gameState.js";
+import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas } from "./core/gameState.js";
+import { buildReviewStage } from "./core/reviewStage.js";
+import { mountMenu } from "./ui/menu.js";
 import { prepareAnswer } from "./ui/inputHandler.js";
 
 export async function start(stageId){
@@ -10,6 +12,7 @@ export async function start(stageId){
     // 初期: カードタワー
     const root = document.getElementById('tower');
     renderCardTower({ rootEl: root, onSelectStage: (id) => start(id) });
+    mountMenu({ rootEl: document.getElementById('menu'), onStartReview: (stage) => startReview(stage) });
     return;
   }
 
@@ -95,6 +98,46 @@ export async function start(stageId){
 
   if (fire) fire.addEventListener('click', submit);
   if (answer) answer.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+}
+
+export async function startReview(stage){
+  const payload = stage || buildReviewStage({ rows: 1, cols: Math.min(10, getIncorrectFormulas().length) });
+  const grid = document.getElementById('grid');
+  const answer = document.getElementById('answer');
+  const selectedEl = document.getElementById('selected');
+  const scoreEl = document.getElementById('score');
+  let score = Number(scoreEl?.textContent || '0') || 0;
+
+  const questions = payload.preGenerated;
+  const indexMap = new Map(); // formula -> first index in log
+  getIncorrectFormulas().forEach((f, idx) => { if (!indexMap.has(f)) indexMap.set(f, idx); });
+
+  function onCorrect(){
+    const el = grid.querySelector('.enemy');
+    const formula = el ? String(el.textContent).replace(' = ?', '').trim() : null;
+    if (formula != null && indexMap.has(formula)) clearIncorrectFormula(indexMap.get(formula));
+    score += 50; if (scoreEl) scoreEl.textContent = String(score);
+    if (grid.children.length === 0){
+      const msg = document.getElementById('message');
+      if (msg) msg.textContent = 'REVIEW CLEAR!';
+      renderCardTower({ rootEl: document.getElementById('tower'), onSelectStage: (id) => start(id) });
+    }
+  }
+  function onWrong(){}
+
+  const ctrl = spawnController({ rootEl: grid, questions, cols: questions.length, descendSpeed: 0, spawnIntervalSec: 10, onCorrect, onWrong });
+
+  function submit(){
+    const selected = ctrl.getSelected?.();
+    if (!selected || !selected.isConnected) return;
+    const needRem = selected.dataset.remainder != null;
+    const normalized = prepareAnswer(answer.value, { needRemainder: needRem });
+    if (normalized == null) return;
+    const ok = ctrl.submit(normalized);
+    if (ok) answer.value = '';
+  }
+  const fire = document.getElementById('fire');
+  if (fire) fire.addEventListener('click', submit, { once: true });
 }
 
 if (typeof document !== 'undefined'){

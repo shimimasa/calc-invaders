@@ -80,6 +80,21 @@ export function logIncorrectFormula(formula){
   return updateState({ incorrectFormulas: list });
 }
 
+export function getIncorrectFormulas(){
+  const current = loadState();
+  return Array.isArray(current.incorrectFormulas) ? current.incorrectFormulas.slice() : [];
+}
+
+export function clearIncorrectFormula(index){
+  const current = loadState();
+  const arr = Array.isArray(current.incorrectFormulas) ? current.incorrectFormulas.slice() : [];
+  if (Number.isInteger(index) && index >= 0 && index < arr.length){
+    arr.splice(index, 1);
+    return updateState({ incorrectFormulas: arr });
+  }
+  return current;
+}
+
 export function flipCard(cardId){
   const current = loadState();
   const set = new Set(current.flippedCards || []);
