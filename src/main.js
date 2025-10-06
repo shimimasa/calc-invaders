@@ -4,6 +4,7 @@ import { renderCardTower, markStageCleared } from "./ui/cardTower.js";
 import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas } from "./core/gameState.js";
 import { buildReviewStage } from "./core/reviewStage.js";
 import { mountMenu } from "./ui/menu.js";
+import { mountSettings } from "./ui/settings.js";
 import { prepareAnswer, attachKeyboardSubmission, setLiveStatus } from "./ui/inputHandler.js";
 import { ensureLiveRegion } from "./utils/accessibility.js";
 
@@ -14,6 +15,7 @@ export async function start(stageId){
     const root = document.getElementById('tower');
     renderCardTower({ rootEl: root, onSelectStage: (id) => start(id) });
     mountMenu({ rootEl: document.getElementById('menu'), onStartReview: (stage) => startReview(stage) });
+    mountSettings({ rootEl: document.getElementById('settings') });
     return;
   }
 
