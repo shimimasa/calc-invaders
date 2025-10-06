@@ -1,36 +1,39 @@
+// scripts/buildStages.js
 import fs from "fs/promises";
-import { join, dirname } from "path";
+import path from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const OUT_DIR = join(__dirname, "..", "public", "data", "stages"); // 絶対パスに変更
+const __dirname  = path.dirname(__filename);
+const REPO_ROOT  = path.resolve(__dirname, "..");
+const OUT_DIR    = path.join(REPO_ROOT, "public", "data", "stages");
 
+// ---- safety: log & watchdog ----
+const start = Date.now();
+console.log("[prebuild] start");
+console.log("[prebuild] node:", process.version);
+console.log("[prebuild] cwd:", process.cwd());
+console.log("[prebuild] __dirname:", __dirname);
+console.log("[prebuild] OUT_DIR:", OUT_DIR);
+
+// 90秒経っても終わらなければ強制終了してログを出す
+const watchdog = setTimeout(() => {
+  console.error("[prebuild] TIMEOUT (90s) — something is blocking/hanging");
+  process.exit(1);
+}, 90_000);
+
+// ---- helpers ----
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function pad2(n) { return String(n).padStart(2, "0"); }
 function symbolForMark(mark){ return mark === "heart" ? "♡" : mark === "spade" ? "♠" : mark === "club" ? "♣" : "♦"; }
 function operationForMark(mark){ return mark === "heart" ? "addition" : mark === "spade" ? "subtraction" : mark === "club" ? "multiplication" : "division"; }
-function grade(mark, rank){
-  if (rank <= 6) return (mark === "heart" || mark === "spade") ? "lower" : "middle";
-  return "upper";
-}
+function grade(mark, rank){ return (rank <= 6) ? ((mark === "heart" || mark === "spade") ? "lower" : "middle") : "upper"; }
 
 function enemySetFor(rank){
-  return {
-    rows: 2,
-    cols: 5,
-    spawnIntervalSec: clamp(2.8 - rank*0.1, 1.2, 3.0),
-    descendSpeed: 1.0 + rank*0.08
-  };
+  return { rows: 2, cols: 5, spawnIntervalSec: clamp(2.8 - rank*0.1, 1.2, 3.0), descendSpeed: 1.0 + rank*0.08 };
 }
-
 function rulesFor(rank){
-  return {
-    timeLimitSec: 60 + rank*3,
-    lives: 3,
-    scorePerHit: 100 + 5*rank,
-    comboBonus: true
-  };
+  return { timeLimitSec: 60 + rank*3, lives: 3, scorePerHit: 100 + 5*rank, comboBonus: true };
 }
 
 function additionConstraints(rank){
@@ -104,22 +107,26 @@ function constraintsFor(mark, rank){
   return divisionConstraints(rank);
 }
 
-async function buildAll() {
+// ---- main ----
+async function main(){
   await fs.mkdir(OUT_DIR, { recursive: true });
+  console.log("[prebuild] mkdir OUT_DIR done");
+
   const marks = ["heart","spade","club","diamond"];
   const stages = [];
+
   for (const mark of marks){
-    const op = operationForMark(mark);
-    const sym = symbolForMark(mark);
     for (let rank=1; rank<=13; rank++){
       const id = `${mark}_${pad2(rank)}`;
       const { pattern, constraints } = constraintsFor(mark, rank);
+      if (!pattern || !constraints) throw new Error(`constraintsFor returned empty for ${id}`);
+
       const stage = {
         stageId: id,
         mark,
-        operation: op,
+        operation: operationForMark(mark),
         rank,
-        deckLabel: `${sym}${rank}`,
+        deckLabel: `${symbolForMark(mark)}${rank}`,
         targetGrade: grade(mark, rank),
         enemySet: enemySetFor(rank),
         rules: rulesFor(rank),
@@ -130,16 +137,22 @@ async function buildAll() {
     }
   }
 
-  // 書き出し
-  for (const s of stages) {
-    const file = join(OUT_DIR, `${s.stageId}.json`);
+  console.log("[prebuild] writing json files:", stages.length);
+  let wrote = 0;
+  await Promise.all(stages.map(async (s) => {
+    const file = path.join(OUT_DIR, `${s.stageId}.json`);
     await fs.writeFile(file, JSON.stringify(s, null, 2), "utf-8");
-  }
-  console.log("[prebuild] buildStages complete ✅");
+    wrote++;
+    if (wrote % 10 === 0) console.log(`[prebuild] progress ${wrote}/${stages.length}`);
+  }));
+
+  clearTimeout(watchdog);
+  console.log("[prebuild] done in", (Date.now() - start), "ms ✅");
 }
 
-buildAll().catch((err) => {
-  console.error("[prebuild] Error:", err);
+main().catch((err) => {
+  clearTimeout(watchdog);
+  console.error("[prebuild] ERROR:", err);
   process.exit(1);
 });
 

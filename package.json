@@ -3,14 +3,13 @@
     "type": "module",
     "version": "1.0.0",
     "scripts": {
-        "predev": "node ./scripts/buildStages.js",
-        "dev": "vite",
-        "prebuild": "node ./scripts/buildStages.js",
-        "build": "vite build",
-        "build:stages": "node ./scripts/buildStages.js",
-        "test": "vitest run",
-        "test:watch": "vitest"
-    },
+    "prebuild": "node --trace-uncaught --unhandled-rejections=strict ./scripts/buildStages.js",
+    "build": "vite build",
+    "dev": "vite",
+    "build:stages": "node ./scripts/buildStages.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
     "devDependencies": {
         "jsdom": "^27.0.0",
         "vite": "^5.0.0",
