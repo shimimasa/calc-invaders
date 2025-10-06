@@ -1,5 +1,6 @@
 import { loadStage } from "../core/questionBank.js";
 import { spawnController } from "../core/spawnController.js";
+import { prepareAnswer } from "./inputHandler.js";
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -84,7 +85,20 @@ function init() {
 
   // ---- 判定 ----
   function fire() {
-    const ok = ctrl?.submit($answer.value);
+    const selected = ctrl?.getSelected?.();
+    if (!selected || !selected.isConnected) return; // 未選択ガード
+    const needRem = selected?.dataset?.remainder != null;
+    const normalized = prepareAnswer($answer.value, {
+      needRemainder: needRem,
+      onInputError(msg){
+        // 簡易エラー表示フック: 下部テキストに表示
+        const prev = $selected.textContent;
+        $selected.textContent = `ERROR: ${msg}`;
+        setTimeout(() => { if ($selected.textContent.startsWith('ERROR:')) $selected.textContent = prev; }, 1200);
+      }
+    });
+    if (normalized == null) return;
+    const ok = ctrl?.submit(normalized);
     if (ok) $answer.value = "";
   }
   let isPaused = false;
