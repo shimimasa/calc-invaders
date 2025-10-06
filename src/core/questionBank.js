@@ -63,6 +63,51 @@ function fisherYatesShuffleCopy(arr){
   return out;
 }
 
+function callGenerator(operation, rank, count, constraints){
+  switch (operation) {
+    case 'addition':       return genAdd(rank, count, constraints);
+    case 'subtraction':    return genSub(rank, count, constraints);
+    case 'multiplication': return genMul(rank, count, constraints);
+    case 'division':       return genDiv(rank, count, constraints);
+    default: throw new Error('Unknown operation: ' + operation);
+  }
+}
+
+// 直近ウィンドウ重複回避付き pre-generate
+export function preGenerate(stageJson){
+  const { operation, rank, enemySet = {}, generator = {} } = stageJson || {};
+  const constraints = generator?.constraints || {};
+  const rows = Number.isFinite(enemySet.rows) ? enemySet.rows : 2;
+  const cols = Number.isFinite(enemySet.cols) ? enemySet.cols : 5;
+  let need = rows * cols; if (!Number.isFinite(need) || need <= 0) need = 10;
+
+  const WINDOW_SIZE = 50;
+  const MAX_ATTEMPTS = 20;
+  const windowSet = new Set();
+  const windowQueue = [];
+  const out = [];
+
+  while (out.length < need) {
+    let accepted = null; let last = null;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++){
+      const cand = callGenerator(operation, rank, 1, constraints)[0];
+      if (!cand) continue;
+      last = cand;
+      if (!windowSet.has(cand.formula)) { accepted = cand; break; }
+    }
+    accepted = accepted || last || callGenerator(operation, rank, 1, constraints)[0];
+    if (!accepted) break;
+    out.push(accepted);
+    windowQueue.push(accepted.formula);
+    windowSet.add(accepted.formula);
+    if (windowQueue.length > WINDOW_SIZE){
+      const old = windowQueue.shift();
+      windowSet.delete(old);
+    }
+  }
+  return out;
+}
+
 export function loadStage(stageJson){
   const { operation, rank, enemySet = {}, preGenerated, stageId, shuffle } = stageJson;
   const constraints = stageJson?.generator?.constraints || {};
@@ -89,29 +134,10 @@ export function loadStage(stageJson){
     const cached = stageCache.get(stageId).questions;
     return shuffle === true ? fisherYatesShuffleCopy(cached) : cached;
   }
-
-  switch (operation) {
-    case 'addition':       {
-      const qs = genAdd(rank, need, constraints);
-      if (stageId) stageCache.set(stageId, { questions: qs });
-      return shuffle === true ? fisherYatesShuffleCopy(qs) : qs;
-    }
-    case 'subtraction':    {
-      const qs = genSub(rank, need, constraints);
-      if (stageId) stageCache.set(stageId, { questions: qs });
-      return shuffle === true ? fisherYatesShuffleCopy(qs) : qs;
-    }
-    case 'multiplication': {
-      const qs = genMul(rank, need, constraints);
-      if (stageId) stageCache.set(stageId, { questions: qs });
-      return shuffle === true ? fisherYatesShuffleCopy(qs) : qs;
-    }
-    case 'division':       {
-      const qs = genDiv(rank, need, constraints);
-      if (stageId) stageCache.set(stageId, { questions: qs });
-      return shuffle === true ? fisherYatesShuffleCopy(qs) : qs;
-    }
-    default: throw new Error('Unknown operation: ' + operation);
-  }
+  
+  // 生成（重複抑制付き）
+  const qs = preGenerate(stageJson);
+  if (stageId) stageCache.set(stageId, { questions: qs });
+  return shuffle === true ? fisherYatesShuffleCopy(qs) : qs;
 }
 

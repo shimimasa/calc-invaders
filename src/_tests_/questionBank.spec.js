@@ -1,5 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import { loadStage } from "../core/questionBank.js";
+import { preGenerate } from "../core/questionBank.js";
 
 function makeStage({
   stageId = "tmp_1",
@@ -94,6 +95,22 @@ describe("questionBank - constraints passthrough (division allowRemainder)", () 
       const someHasRemainder = qs.some(q => typeof q.remainder === 'number' && q.remainder > 0);
       expect(someHasRemainder).toBe(true);
     }
+  });
+});
+
+describe("questionBank - sliding window uniqueness", () => {
+  test("recent window reduces duplicates (heuristic)", () => {
+    const stage = makeStage({ stageId: "uniq_1", operation: "addition", rank: 6, rows: 10, cols: 5 }); // 50問
+    const qs = preGenerate(stage);
+    const seen = new Set();
+    let dup = 0;
+    for (const q of qs){
+      const key = q.formula;
+      if (seen.has(key)) dup += 1;
+      seen.add(key);
+    }
+    // ランダム性があるため緩い上限（全50中、重複は < 5 を期待）
+    expect(dup).toBeLessThan(5);
   });
 });
 
