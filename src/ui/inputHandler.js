@@ -38,4 +38,19 @@ export function prepareAnswer(raw, { needRemainder = false, onInputError } = {})
   return `${q},${r}`;
 }
 
+// キーボード操作: Enter/Spaceで送信、Escで解除
+export function attachKeyboardSubmission({ inputEl, onSubmit, onClear }){
+  if (!inputEl) return;
+  inputEl.addEventListener('keydown', (e) => {
+    const k = e.key?.toLowerCase();
+    if (k === 'enter' || k === ' ' || k === 'spacebar') { e.preventDefault(); onSubmit?.(); }
+    else if (k === 'escape') { e.preventDefault(); onClear?.(); }
+  });
+}
+
+export function setLiveStatus(message){
+  const el = document.getElementById('live-status');
+  if (el) el.textContent = String(message || '');
+}
+
 

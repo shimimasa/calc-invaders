@@ -4,7 +4,8 @@ import { renderCardTower, markStageCleared } from "./ui/cardTower.js";
 import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas } from "./core/gameState.js";
 import { buildReviewStage } from "./core/reviewStage.js";
 import { mountMenu } from "./ui/menu.js";
-import { prepareAnswer } from "./ui/inputHandler.js";
+import { prepareAnswer, attachKeyboardSubmission, setLiveStatus } from "./ui/inputHandler.js";
+import { ensureLiveRegion } from "./utils/accessibility.js";
 
 export async function start(stageId){
   const state = loadState();
@@ -50,6 +51,7 @@ export async function start(stageId){
     combo += 1;
     addScore(json.rules?.scorePerHit ?? 100);
     selectedEl && (selectedEl.textContent = "SELECTED: なし");
+    setLiveStatus('Correct ✓');
     if (grid.children.length === 0){
       // クリア
       markStageCleared(stageId);
@@ -63,6 +65,7 @@ export async function start(stageId){
     combo = 0;
     lives -= 1;
     if (lifeEl) lifeEl.textContent = String(lives);
+    setLiveStatus('Wrong ✗');
     if (lives <= 0) return gameOver();
   }
 
@@ -98,6 +101,8 @@ export async function start(stageId){
 
   if (fire) fire.addEventListener('click', submit);
   if (answer) answer.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+  ensureLiveRegion(document.body);
+  attachKeyboardSubmission({ inputEl: answer, onSubmit: submit, onClear: () => { /* selection clear is in game.js usually */ } });
 }
 
 export async function startReview(stage){

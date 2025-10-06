@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 import { describe, test, expect } from 'vitest';
-import { formulaToAriaLabel, formulaStringToAriaLabel } from '../utils/accessibility.js';
+import { formulaToAriaLabel, formulaStringToAriaLabel, ensureLiveRegion } from '../utils/accessibility.js';
 import { spawnController } from '../core/spawnController.js';
 
 describe('a11y helpers', () => {
@@ -20,6 +20,12 @@ describe('enemies focusable with tabindex', () => {
     expect(btn.getAttribute('role')).toBe('button');
     expect(btn.getAttribute('tabindex')).toBe('0');
     ctrl.stop();
+  });
+
+  test('live region exists', () => {
+    const el = ensureLiveRegion(document.body);
+    expect(el).not.toBeNull();
+    expect(el.getAttribute('aria-live')).toBe('polite');
   });
 });
 
