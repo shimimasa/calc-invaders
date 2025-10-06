@@ -2,6 +2,7 @@ const STORAGE_KEY = 'ci:audio:v1';
 
 let sfxEnabled = true;
 let bgmEnabled = true;
+let unlocked = false;
 
 function load(){
   try{
@@ -21,10 +22,11 @@ export function getSfxEnabled(){ return sfxEnabled; }
 export function getBgmEnabled(){ return bgmEnabled; }
 export function setSfxEnabled(v){ sfxEnabled = !!v; save(); }
 export function setBgmEnabled(v){ bgmEnabled = !!v; save(); }
+export function unlockAudio(){ unlocked = true; }
 
 // Stubs: 実オーディオ再生は未実装。戻り値で有効/無効を示す。
-export function playSfx(_name){ return !!sfxEnabled; }
-export function startBgm(_name){ return !!bgmEnabled; }
+export function playSfx(_name){ return unlocked && !!sfxEnabled; }
+export function startBgm(_name){ return unlocked && !!bgmEnabled; }
 export function stopBgm(){ return true; }
 
 

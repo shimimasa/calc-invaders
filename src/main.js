@@ -5,7 +5,8 @@ import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncor
 import { buildReviewStage } from "./core/reviewStage.js";
 import { mountMenu } from "./ui/menu.js";
 import { mountSettings } from "./ui/settings.js";
-import { prepareAnswer, attachKeyboardSubmission, setLiveStatus } from "./ui/inputHandler.js";
+import { prepareAnswer, attachKeyboardSubmission, setLiveStatus, setNumericInputAttributes } from "./ui/inputHandler.js";
+import { unlockAudio } from "./audio/index.js";
 import { ensureLiveRegion } from "./utils/accessibility.js";
 
 export async function start(stageId){
@@ -23,6 +24,11 @@ export async function start(stageId){
   const grid = document.getElementById('grid');
   const answer = document.getElementById('answer');
   const fire = document.getElementById('fire');
+  // モバイル: 数値キーボード誘導
+  setNumericInputAttributes(answer);
+  // 初回タップでオーディオポリシー解除
+  const onceUnlock = () => { unlockAudio(); document.removeEventListener('pointerup', onceUnlock); };
+  document.addEventListener('pointerup', onceUnlock, { once: true });
   const scoreEl = document.getElementById('score');
   const lifeEl = document.getElementById('life');
   const selectedEl = document.getElementById('selected');
@@ -83,13 +89,15 @@ export async function start(stageId){
     onWrong
   });
 
-  grid.addEventListener('click', (e) => {
+  const selectHandler = (e) => {
     const btn = e.target.closest('.enemy');
     if (!btn) return;
     ctrl.lock(btn);
     selectedEl && (selectedEl.textContent = 'SELECTED: ' + btn.textContent);
     answer && answer.focus();
-  });
+  };
+  grid.addEventListener('click', selectHandler);
+  grid.addEventListener('pointerup', selectHandler);
 
   function submit(){
     const selected = ctrl.getSelected?.();
@@ -101,7 +109,7 @@ export async function start(stageId){
     if (ok) answer.value = '';
   }
 
-  if (fire) fire.addEventListener('click', submit);
+  if (fire) { fire.addEventListener('click', submit); fire.addEventListener('pointerup', submit); }
   if (answer) answer.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
   ensureLiveRegion(document.body);
   attachKeyboardSubmission({ inputEl: answer, onSubmit: submit, onClear: () => { /* selection clear is in game.js usually */ } });

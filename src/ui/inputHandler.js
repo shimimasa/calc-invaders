@@ -53,4 +53,10 @@ export function setLiveStatus(message){
   if (el) el.textContent = String(message || '');
 }
 
+export function setNumericInputAttributes(inputEl){
+  if (!inputEl) return;
+  inputEl.setAttribute('inputmode', 'numeric');
+  inputEl.setAttribute('pattern', '[0-9 ]*,?[0-9 ]*');
+}
+
 
