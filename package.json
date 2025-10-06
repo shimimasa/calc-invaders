@@ -3,7 +3,6 @@
     "type": "module",
     "version": "1.0.0",
     "scripts": {
-    "prebuild": "node --trace-uncaught --unhandled-rejections=strict ./scripts/buildStages.js",
     "build": "vite build",
     "dev": "vite",
     "build:stages": "node ./scripts/buildStages.js",
