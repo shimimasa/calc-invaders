@@ -2,18 +2,20 @@
     "name": "calc-invaders",
     "type": "module",
     "version": "1.0.0",
-    "scripts": {
-      "predev": "node ./scripts/buildStages.js",
-      "prebuild": "node ./scripts/buildStages.js",
-      "build": "vite build",
-      "dev": "vite",
-      "build:stages": "node ./scripts/buildStages.js",
-      "test": "vitest run",
-      "test:watch": "vitest"
-    },
-    "engines": {
-      "node": "22.x"
-    },
+    
+        "scripts": {
+          "predev": "node ./scripts/buildStages.js",
+          "prebuild": "node ./scripts/buildStages.js",
+          "build": "node ./node_modules/vite/bin/vite.js build",
+          "dev": "vite",
+          "build:stages": "node ./scripts/buildStages.js",
+          "test": "vitest run",
+          "test:watch": "vitest"
+        },
+        "engines": {
+          "node": "20.x"
+        },
+      
     "devDependencies": {
       "jsdom": "^27.0.0",
       "vite": "^5.0.0",
