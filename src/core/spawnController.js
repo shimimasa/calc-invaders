@@ -1,5 +1,5 @@
  
-   export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 5, descendSpeed = 1, spawnIntervalSec = 2.5 }) {
+   export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 5, descendSpeed = 1, spawnIntervalSec = 2.5, bottomY, onBottomReached }) {
    const state = { lockEl: null };
    const rowsCount = Math.ceil(questions.length / Math.max(1, cols));
    const rowOffsetPx = Array.from({ length: rowsCount }, () => 0);
@@ -21,6 +21,16 @@
        const step = Math.max(1, Math.floor(6 * descendSpeed));
        for (let r = 0; r < rowOffsetPx.length; r++) rowOffsetPx[r] += step;
        applyRowTransforms();
+        // 底判定
+        if (typeof bottomY === 'number' && bottomY === bottomY) {
+          const reached = [...rootEl.children].some((el) => {
+            const idx = Number(el.dataset.idx);
+            const row = Math.floor(idx / Math.max(1, cols));
+            const y = rowOffsetPx[row];
+            return y >= bottomY;
+          });
+          if (reached) { if (onBottomReached) onBottomReached(); }
+        }
      }, tickMs);
    }
    function stopDescend(){
