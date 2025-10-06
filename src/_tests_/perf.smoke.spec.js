@@ -1,4 +1,5 @@
 import { describe, test, expect } from 'vitest';
+/* @vitest-environment jsdom */
 import { FpsSampler, logOnceOnDrop, now } from '../utils/perf.js';
 import { renderEnemies, applyRowTransformsBatch } from '../ui/renderer.js';
 
