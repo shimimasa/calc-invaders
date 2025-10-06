@@ -16,36 +16,51 @@ export function generate(rank, count) {
       const b = randInt(1,9); const q = randInt(2,9); const a = b*q; if (a>=10 && a<=99)
         results.push({ formula: `${a} ÷ ${b}`, answer: q });
     } else if (rank === 5) { // 2桁÷1桁 remainder >0
-      const b = randInt(1,9); let a = randInt(10,99); let r = a % b; if (r===0) { a+=1; r = a % b; }
-      const q = Math.floor(a/b); if (r>0 && r<b)
+      const b = randInt(1,9);
+      let a, r;
+      do { a = randInt(10,99); r = a % b; } while (r === 0);
+      const q = Math.floor(a/b);
+      if (r>0 && r<b)
         results.push({ formula: `${a} ÷ ${b}`, answer: q, remainder: r });
     } else if (rank === 6) { // 3桁÷1桁 remainder 0
       const b = randInt(1,9); const q = randInt(12,111); const a = b*q; if (a>=100 && a<=999)
         results.push({ formula: `${a} ÷ ${b}`, answer: q });
     } else if (rank === 7) { // 3桁÷1桁 remainder >0
-      const b = randInt(1,9); let a = randInt(100,999); let r = a % b; if (r===0) { a+=1; r = a % b; }
-      const q = Math.floor(a/b); if (r>0 && r<b)
+      const b = randInt(1,9);
+      let a, r;
+      do { a = randInt(100,999); r = a % b; } while (r === 0);
+      const q = Math.floor(a/b);
+      if (r>0 && r<b)
         results.push({ formula: `${a} ÷ ${b}`, answer: q, remainder: r });
     } else if (rank === 8) { // 2桁÷2桁 remainder 0
       const b = randInt(10,99); const q = randInt(1,9); const a = b*q; if (a>=10 && a<=99)
         results.push({ formula: `${a} ÷ ${b}`, answer: q });
     } else if (rank === 9) { // 2桁÷2桁 remainder >0
-      const b = randInt(10,99); let a = randInt(10,99); let r = a % b; if (r===0) { a+=b>10?1:2; r = a % b; }
-      const q = Math.floor(a/b); if (r>0 && r<b)
+      const b = randInt(10,99);
+      let a, r;
+      do { a = randInt(10,99); r = a % b; } while (r === 0);
+      const q = Math.floor(a/b);
+      if (r>0 && r<b)
         results.push({ formula: `${a} ÷ ${b}`, answer: q, remainder: r });
     } else if (rank === 10) { // 3桁÷2桁 remainder 0
       const b = randInt(10,99); const q = randInt(2,99); const a = b*q; if (a>=100 && a<=999)
         results.push({ formula: `${a} ÷ ${b}`, answer: q });
     } else if (rank === 11) { // 3桁÷2桁 remainder >0
-      const b = randInt(10,99); let a = randInt(100,999); let r = a % b; if (r===0) { a+=1; r = a % b; }
-      const q = Math.floor(a/b); if (r>0 && r<b)
+      const b = randInt(10,99);
+      let a, r;
+      do { a = randInt(100,999); r = a % b; } while (r === 0);
+      const q = Math.floor(a/b);
+      if (r>0 && r<b)
         results.push({ formula: `${a} ÷ ${b}`, answer: q, remainder: r });
     } else if (rank === 12) { // 4桁÷2桁 remainder 0
       const b = randInt(10,99); const q = randInt(11,99); const a = b*q; if (a>=1000 && a<=9999)
         results.push({ formula: `${a} ÷ ${b}`, answer: q });
     } else if (rank === 13) { // 4桁÷2桁 remainder >0
-      const b = randInt(10,99); let a = randInt(1000,9999); let r = a % b; if (r===0) { a+=1; r = a % b; }
-      const q = Math.floor(a/b); if (r>0 && r<b)
+      const b = randInt(10,99);
+      let a, r;
+      do { a = randInt(1000,9999); r = a % b; } while (r === 0);
+      const q = Math.floor(a/b);
+      if (r>0 && r<b)
         results.push({ formula: `${a} ÷ ${b}`, answer: q, remainder: r });
     } else {
       break;
