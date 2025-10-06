@@ -30,8 +30,8 @@ export function prepareAnswer(raw, { needRemainder = false, onInputError } = {})
     return s;
   }
 
-  // 余りあり: 区切りは ',' のみになるよう正規化済み
-  const parts = s.split(',').map(t => t.trim()).filter(Boolean);
+  // 余りあり: 区切りは "," または 空白 を許可
+  const parts = s.split(/[\s,]+/).map(t => t.trim()).filter(Boolean);
   if (parts.length !== 2) { if (onInputError) onInputError('形式は "商,余り" です'); return null; }
   const [q, r] = parts;
   if (!isIntegerToken(q) || !isIntegerToken(r)) { if (onInputError) onInputError('商と余りは整数で入力'); return null; }

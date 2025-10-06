@@ -28,4 +28,10 @@ describe('UI input normalization & validation', () => {
     const out = prepareAnswer('１２，３', { needRemainder: true });
     expect(out).toBe('12,3');
   });
+
+  it('division remainder accepts comma, Japanese comma, and space', () => {
+    expect(prepareAnswer('12,3', { needRemainder: true })).toBe('12,3');
+    expect(prepareAnswer('12、3', { needRemainder: true })).toBe('12,3');
+    expect(prepareAnswer('12 3', { needRemainder: true })).toBe('12,3');
+  });
 });
