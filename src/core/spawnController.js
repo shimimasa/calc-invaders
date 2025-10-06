@@ -47,9 +47,11 @@
     // 配置
      rootEl.innerHTML = "";
     questions.forEach((q, i) => {
-       const div = document.createElement("button");
-       div.className = "enemy";
-       div.setAttribute("aria-label", `${q.formula} のこたえは？`);
+      const div = document.createElement("button");
+      div.className = "enemy focus-ring";
+      div.setAttribute("role", "button");
+      div.setAttribute("tabindex", "0");
+      div.setAttribute("aria-label", `${q.formula} のこたえは？`);
        div.textContent = q.formula + " = ?";
        div.dataset.idx = i;
        div.dataset.answer = String(q.answer);
