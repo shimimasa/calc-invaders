@@ -1,7 +1,10 @@
-import { writeFileSync, mkdirSync, existsSync } from "fs";
-import { join } from "path";
+import fs from "fs/promises";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
-const OUT_DIR = join("public", "data", "stages");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const OUT_DIR = join(__dirname, "..", "public", "data", "stages"); // 絶対パスに変更
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function pad2(n) { return String(n).padStart(2, "0"); }
@@ -101,8 +104,8 @@ function constraintsFor(mark, rank){
   return divisionConstraints(rank);
 }
 
-function buildAll() {
-  if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true });
+async function buildAll() {
+  await fs.mkdir(OUT_DIR, { recursive: true });
   const marks = ["heart","spade","club","diamond"];
   const stages = [];
   for (const mark of marks){
@@ -126,12 +129,18 @@ function buildAll() {
       stages.push(stage);
     }
   }
+
+  // 書き出し
   for (const s of stages) {
     const file = join(OUT_DIR, `${s.stageId}.json`);
-    writeFileSync(file, JSON.stringify(s, null, 2), "utf-8");
+    await fs.writeFile(file, JSON.stringify(s, null, 2), "utf-8");
   }
+  console.log("[prebuild] buildStages complete ✅");
 }
 
-buildAll();
+buildAll().catch((err) => {
+  console.error("[prebuild] Error:", err);
+  process.exit(1);
+});
 
 
