@@ -137,28 +137,34 @@ export async function start(stageId){
   };
   grid.addEventListener('click', selectHandler);
   grid.addEventListener('pointerup', selectHandler);
+  
   function submit(){
     const selected = ctrl.getSelected?.();
     if (!selected || !selected.isConnected) return;
     const needRem = selected.dataset.remainder != null;
     const normalized = prepareAnswer(answer.value, { needRemainder: needRem });
     if (normalized == null) return;
+
+    const willHit = ctrl.previewCheck?.(normalized) === true;
     const fromEl = document.getElementById('fire') || answer;
     const toEl = selected;
-    const ok = ctrl.submit(normalized);
-    // 弾演出（正解は青、誤答は赤）
-    shootProjectile({ fromEl, toEl, color: ok ? '#3BE3FF' : '#ff5252', hit: ok })
+
+    // 命中演出→判定・削除
+    shootProjectile({ fromEl, toEl, color: willHit ? '#3BE3FF' : '#ff5252', hit: willHit })
       .then(() => {
-        if (ok) {
-          // 追加のヒット演出（任意）
-          // showHitEffect({ rootEl: document.body, anchorEl: toEl, text: '+100' });
+        if (willHit) {
+          // 爆発エフェクト
+          // showHitEffect は toEl の位置を使うので submit 前に呼ぶ
+          // （削除後は位置が取れないため）
+          showHitEffect({ rootEl: document.body, anchorEl: toEl, text: '+100' });
         } else {
+          // 外れ演出（画面フラッシュ＆シェイク）
           // showMissEffect({ rootEl: document.body });
         }
+        const ok = ctrl.submit(normalized);
+        if (ok) answer.value = '';
       });
-    if (ok) answer.value = '';
   }
-
   if (fire) { fire.addEventListener('click', submit); fire.addEventListener('pointerup', submit); }
   if (answer) answer.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
   ensureLiveRegion(document.body);
