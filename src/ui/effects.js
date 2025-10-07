@@ -1,4 +1,29 @@
 let injected = false;
+// src/ui/effects.js
+export function shootProjectile({ fromEl, toEl, color = '#3BE3FF', duration = 250, hit = true }) {
+  return new Promise((resolve) => {
+    const root = document.body;
+    const a = fromEl.getBoundingClientRect();
+    const b = toEl.getBoundingClientRect();
+    const dot = document.createElement('div');
+    Object.assign(dot.style, {
+      position: 'fixed', left: `${a.left + a.width/2}px`, top: `${a.top + a.height/2}px`,
+      width: '8px', height: '8px', borderRadius: '50%', background: color, zIndex: 9999,
+      transition: `transform ${duration}ms linear, opacity 120ms ease-out`
+    });
+    root.appendChild(dot);
+    requestAnimationFrame(() => {
+      const dx = (b.left + b.width/2) - (a.left + a.width/2);
+      const dy = (b.top + b.height/2) - (a.top + a.height/2);
+      dot.style.transform = `translate(${dx}px, ${dy}px)`;
+    });
+    setTimeout(() => {
+      if (hit) toEl.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.2)' }, { transform: 'scale(0.8)' }], { duration: 160 });
+      dot.style.opacity = '0';
+      setTimeout(() => { dot.remove(); resolve(); }, 120);
+    }, duration);
+  });
+}
 function injectStyles(){
   if (injected || typeof document === 'undefined') return;
   injected = true;
