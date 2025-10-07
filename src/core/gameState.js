@@ -12,7 +12,8 @@ export function getDefaultState(){
     audioSettings: { bgm: true, se: true, volume: 1 },
     unlockedSuits: { heart: true, spade: false, club: false, diamond: false },
     difficulty: 'normal',
-    selectedSuits: { heart: true, spade: false, club: false, diamond: false }
+    selectedSuits: { heart: true, spade: false, club: false, diamond: false },
+    selectedRanks: { 1:true, 2:false, 3:false, 4:false, 5:false, 6:false, 7:false, 8:false, 9:false, 10:false, 11:false, 12:false, 13:false }
   };
 }
 
@@ -30,24 +31,28 @@ function normalizeState(input){
     se: typeof a.se === 'boolean' ? a.se : base.audioSettings.se,
     volume: Number.isFinite(a.volume) ? a.volume : base.audioSettings.volume
   };
-   // unlocked suits
-   const u = input.unlockedSuits || {};
-   out.unlockedSuits = {
-     heart: typeof u.heart === 'boolean' ? u.heart : base.unlockedSuits.heart,
-     spade: typeof u.spade === 'boolean' ? u.spade : base.unlockedSuits.spade,
-     club: typeof u.club === 'boolean' ? u.club : base.unlockedSuits.club,
-     diamond: typeof u.diamond === 'boolean' ? u.diamond : base.unlockedSuits.diamond
-   };
-   // scalars
-   out.score = Number.isFinite(input.score) ? input.score : base.score;
-   out.lives = Number.isFinite(input.lives) ? input.lives : base.lives;
-   out.lastStageId = typeof input.lastStageId === 'string' || input.lastStageId === null ? input.lastStageId : base.lastStageId;
-   out.difficulty = ['easy','normal','hard'].includes(input.difficulty) ? input.difficulty : base.difficulty;
-   const sel = input.selectedSuits || {};
-   out.selectedSuits = {
-     heart: !!sel.heart, spade: !!sel.spade, club: !!sel.club, diamond: !!sel.diamond
-   };
-   return out;
+  // unlocked suits
+  const u = input.unlockedSuits || {};
+  out.unlockedSuits = {
+    heart: typeof u.heart === 'boolean' ? u.heart : base.unlockedSuits.heart,
+    spade: typeof u.spade === 'boolean' ? u.spade : base.unlockedSuits.spade,
+    club: typeof u.club === 'boolean' ? u.club : base.unlockedSuits.club,
+    diamond: typeof u.diamond === 'boolean' ? u.diamond : base.unlockedSuits.diamond
+  };
+  // scalars
+  out.score = Number.isFinite(input.score) ? input.score : base.score;
+  out.lives = Number.isFinite(input.lives) ? input.lives : base.lives;
+  out.lastStageId = typeof input.lastStageId === 'string' || input.lastStageId === null ? input.lastStageId : base.lastStageId;
+  out.difficulty = ['easy','normal','hard'].includes(input.difficulty) ? input.difficulty : base.difficulty;
+  const sel = input.selectedSuits || {};
+  out.selectedSuits = {
+    heart: !!sel.heart, spade: !!sel.spade, club: !!sel.club, diamond: !!sel.diamond
+  };
+  const rsel = input.selectedRanks || {};
+  const ranks = {}; for (let i=1;i<=13;i++) ranks[i] = !!rsel[i];
+  if (!Object.values(ranks).some(Boolean)) ranks[1] = true;
+  out.selectedRanks = ranks;
+  return out;
 }
 
 export function loadState(){
@@ -130,19 +135,20 @@ export function unlockSuit(suit){
   return updateState({ unlockedSuits: next });
 }
 
-// 追加: 難易度とスーツ選択のsetter
 export function setDifficulty(level){
   const lv = (['easy','normal','hard'].includes(level) ? level : 'normal');
   return updateState({ difficulty: lv });
 }
 export function setSelectedSuits(sel){
-  const current = loadState();
   const next = {
     heart: !!sel.heart, spade: !!sel.spade, club: !!sel.club, diamond: !!sel.diamond
   };
-  // 少なくとも1つはtrueにする
-  if (!next.heart && !next.spade && !next.club && !next.diamond){
-    next.heart = true;
-  }
+  if (!next.heart && !next.spade && !next.club && !next.diamond){ next.heart = true; }
   return updateState({ selectedSuits: next });
+}
+// 追加: ランク選択
+export function setSelectedRanks(sel){
+  const next = {}; for (let i=1;i<=13;i++) next[i] = !!sel[i];
+  if (!Object.values(next).some(Boolean)) next[1] = true;
+  return updateState({ selectedRanks: next });
 }

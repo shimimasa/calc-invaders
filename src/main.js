@@ -1,7 +1,7 @@
 import { loadStage } from "./core/questionBank.js";
 import { spawnController } from "./core/spawnController.js";
 import { renderCardTower, markStageCleared } from "./ui/cardTower.js";
-import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas, setDifficulty, setSelectedSuits } from "./core/gameState.js";
+import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas, setDifficulty, setSelectedSuits, setSelectedRanks } from "./core/gameState.js";
 import { buildReviewStage } from "./core/reviewStage.js";
 import { mountMenu } from "./ui/menu.js";
 import { mountSettings } from "./ui/settings.js";
@@ -10,6 +10,7 @@ import { unlockAudio } from "./audio/index.js";
 import { ensureLiveRegion } from "./utils/accessibility.js";
 import { mountTitle } from "./ui/title.js";
 import { shootProjectile, showHitEffect, showMissEffect } from "./ui/effects.js";
+import { showStageClear } from "./ui/result.js";
 
 export async function start(stageId){
   const state = loadState();
@@ -18,10 +19,13 @@ export async function start(stageId){
     const root = document.getElementById('title');
     mountTitle({
       rootEl: root,
-      onStart: ({ suit, difficulty }) => {
+      onStart: ({ suit, rank, difficulty }) => {
         setDifficulty(difficulty);
         setSelectedSuits({ ...loadState().selectedSuits, [suit]: true });
-        start(`${suit}_01`);
+        if (!loadState().selectedRanks?.[rank]) {
+          const r = { ...(loadState().selectedRanks||{}) }; for (let i=1;i<=13;i++) r[i] = !!r[i]; r[rank] = true; setSelectedRanks(r);
+        }
+        start(`${suit}_${String(rank).padStart(2,'0')}`);
       }
     });
     return;
@@ -85,11 +89,22 @@ export async function start(stageId){
       selectedEl && (selectedEl.textContent = "SELECTED: なし");
       setLiveStatus('Correct ✓');
       if (grid.children.length === 0){
-        // クリア
-        markStageCleared(stageId);
-        const msg = document.getElementById('message');
-        if (msg) msg.textContent = 'CLEAR!';
-        renderCardTower({ rootEl: document.getElementById('tower'), onSelectStage: (id) => start(id) });
+        // STAGE CLEAR: 結果画面
+        const totalScore = Number(scoreEl?.textContent || '0') || score;
+        const curId = stageId;
+        const goRetry = () => start(curId);
+        const goNext = () => {
+          const [suit, rstr] = curId.split('_');
+          const r = Number(rstr);
+          const ranks = loadState().selectedRanks || {};
+          // 次の選択ランクを見つける（なければ1..13をラップ）
+          const sequence = Array.from({length:13},(_,k)=>k+1);
+          const after = sequence.slice(r).concat(sequence.slice(0, r));
+          const nextRank = (after.find(n => !!ranks[n])) || ((r % 13) + 1);
+          start(`${suit}_${String(nextRank).padStart(2,'0')}`);
+        };
+        const goTitle = () => start();
+        showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle });
       }
     }
   
