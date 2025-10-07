@@ -1,7 +1,7 @@
 import { loadStage } from "./core/questionBank.js";
 import { spawnController } from "./core/spawnController.js";
 import { renderCardTower, markStageCleared } from "./ui/cardTower.js";
-import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas, setDifficulty, setSelectedSuits, setSelectedRanks } from "./core/gameState.js";
+import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas, setDifficulty, setSelectedSuits, setSelectedRanks, flipCard } from "./core/gameState.js";
 import { buildReviewStage } from "./core/reviewStage.js";
 import { mountMenu } from "./ui/menu.js";
 import { mountSettings } from "./ui/settings.js";
@@ -19,13 +19,13 @@ export async function start(stageId){
     const root = document.getElementById('title');
     mountTitle({
       rootEl: root,
-      onStart: ({ suit, rank, difficulty }) => {
+      onStart: ({ suit, rank, difficulty, countMode }) => {
         setDifficulty(difficulty);
         setSelectedSuits({ ...loadState().selectedSuits, [suit]: true });
         if (!loadState().selectedRanks?.[rank]) {
           const r = { ...(loadState().selectedRanks||{}) }; for (let i=1;i<=13;i++) r[i] = !!r[i]; r[rank] = true; setSelectedRanks(r);
         }
-        start(`${suit}_${String(rank).padStart(2,'0')}`);
+        start(`${suit}_${String(rank).padStart(2,'0')}?q=${String(countMode)}`);
       }
     });
     return;
@@ -48,28 +48,39 @@ export async function start(stageId){
   let lives = Number(lifeEl?.textContent || '3') || 3;
   let score = Number(scoreEl?.textContent || '0') || 0;
 
-    // ステージJSONを取得
-    const res = await fetch(`data/stages/${stageId}.json`);
-    if (!res.ok) throw new Error(`stage not found: ${stageId}`);
-    const json = await res.json();
-    const questions = await loadStage(json);
-  
-    // 難易度（スピードのみ）適用
-    const diff = (loadState().difficulty || 'normal');
-    const speedMap = {
-      easy:  { descendSpeed: 0.7, spawnIntervalSec: 3.0 },
-      normal:{ descendSpeed: 1.0, spawnIntervalSec: 2.5 },
-      hard:  { descendSpeed: 1.5, spawnIntervalSec: 2.0 }
-    };
-    const tuned = speedMap[diff] || speedMap.normal;
-  
-    // ステージ表示
-    const stageEl = document.getElementById('stage');
-    if (stageEl) {
-      const [suit, rank] = stageId.split('_');
-      const sym = suit === 'heart' ? '♡' : suit === 'spade' ? '♠' : suit === 'club' ? '♣' : '♦';
-      stageEl.textContent = `${sym}${Number(rank)}`;
-    }
+      // ステージJSONを取得
+  const [baseId, query] = String(stageId).split('?');
+  const qsParams = new URLSearchParams(query || '');
+  const countMode = qsParams.get('q') || (loadState().questionCountMode || '10');
+
+  const res = await fetch(`data/stages/${baseId}.json`);
+  if (!res.ok) throw new Error(`stage not found: ${baseId}`);
+  const json = await res.json();
+  const questionsAll = await loadStage(json);
+
+  // 問題数モード
+  const endless = (countMode === 'endless');
+  const targetCount = endless ? questionsAll.length : Math.min(questionsAll.length, Number(countMode) || 10);
+  const questions = endless ? questionsAll : questionsAll.slice(0, targetCount);
+
+  // 難易度（スピードのみ）適用
+  const diff = (loadState().difficulty || 'normal');
+  const speedMap = {
+    easy:  { descendSpeed: 0.7, spawnIntervalSec: 3.0 },
+    normal:{ descendSpeed: 1.0, spawnIntervalSec: 2.5 },
+    hard:  { descendSpeed: 1.5, spawnIntervalSec: 2.0 }
+  };
+  const tuned = speedMap[diff] || speedMap.normal;
+
+  // ステージ表示（パターンも）
+  const stageEl = document.getElementById('stage');
+  const patternEl = document.getElementById('pattern');
+  if (stageEl) {
+    const [suit, rank] = baseId.split('_');
+    const sym = suit === 'heart' ? '♡' : suit === 'spade' ? '♠' : suit === 'club' ? '♣' : '♦';
+    stageEl.textContent = `${sym}${Number(rank)}`;
+  }
+  if (patternEl) patternEl.textContent = String(json?.generator?.pattern || '');
   
     function addScore(base){
       const gained = base + Math.min(combo * 10, 100);
@@ -88,20 +99,20 @@ export async function start(stageId){
       addScore(json.rules?.scorePerHit ?? 100);
       selectedEl && (selectedEl.textContent = "SELECTED: なし");
       setLiveStatus('Correct ✓');
-      if (grid.children.length === 0){
-        // STAGE CLEAR: 結果画面
+      if (!endless && grid.children.length === 0){
+        // STAGE CLEAR: 結果画面 + カード獲得
         const totalScore = Number(scoreEl?.textContent || '0') || score;
-        const curId = stageId;
-        const goRetry = () => start(curId);
+        const curId = baseId;
+        try { flipCard(curId); } catch {}
+        const goRetry = () => start(`${curId}?q=${countMode}`);
         const goNext = () => {
           const [suit, rstr] = curId.split('_');
           const r = Number(rstr);
           const ranks = loadState().selectedRanks || {};
-          // 次の選択ランクを見つける（なければ1..13をラップ）
           const sequence = Array.from({length:13},(_,k)=>k+1);
           const after = sequence.slice(r).concat(sequence.slice(0, r));
           const nextRank = (after.find(n => !!ranks[n])) || ((r % 13) + 1);
-          start(`${suit}_${String(nextRank).padStart(2,'0')}`);
+          start(`${suit}_${String(nextRank).padStart(2,'0')}?q=${countMode}`);
         };
         const goTitle = () => start();
         showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle });
@@ -125,7 +136,8 @@ export async function start(stageId){
       bottomY: 300,
       onBottomReached: () => gameOver(),
       onCorrect,
-      onWrong
+      onWrong,
+      endless
     });
 
   const selectHandler = (e) => {

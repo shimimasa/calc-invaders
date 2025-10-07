@@ -1,4 +1,4 @@
-export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 5, descendSpeed = 1, spawnIntervalSec = 2.5, bottomY, onBottomReached }) {
+export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 5, descendSpeed = 1, spawnIntervalSec = 2.5, bottomY, onBottomReached, endless = false }) {
   const state = { lockEl: null, entities: [], paused: false, spawnIdx: 0, spawnTimer: null, descendTimer: null };
   if (!rootEl) throw new Error('rootEl required');
   rootEl.innerHTML = "";
@@ -14,8 +14,8 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
 
   // 生成: 1体ずつスポーン（ランダム列）
   function spawnOne(){
-    if (state.spawnIdx >= questions.length) { clearInterval(state.spawnTimer); state.spawnTimer = null; return; }
-    const q = questions[state.spawnIdx++];
+    if (!endless && state.spawnIdx >= questions.length) { clearInterval(state.spawnTimer); state.spawnTimer = null; return; }
+    const q = endless ? questions[Math.floor(Math.random() * questions.length)] : questions[state.spawnIdx++];
     const el = document.createElement("button");
     el.className = "enemy focus-ring";
     el.setAttribute("role", "button");
@@ -29,8 +29,8 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     const { w } = getFieldRect();
     const col = Math.floor(Math.random() * Math.max(1, cols));
     const colW = w / Math.max(1, cols);
-    const ex = Math.max(0, (colW * col) + (colW / 2) - 48); // 中央寄せ
-    const ey = -Math.random() * 40 - 20; // 画面上から少し上で出現
+    const ex = Math.max(0, (colW * col) + (colW / 2) - 48);
+    const ey = -Math.random() * 40 - 20;
     state.entities.push({ el, x: ex, y: ey, vy: 0 });
     place(el, ex, ey);
 
@@ -41,7 +41,6 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     stopSpawn();
     const ms = Math.max(250, Math.floor(spawnIntervalSec * 1000));
     state.spawnTimer = setInterval(() => { if (!state.paused) spawnOne(); }, ms);
-    // 最初の1体は即時
     spawnOne();
   }
   function stopSpawn(){
@@ -98,17 +97,14 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     const ok = previewCheck(raw);
 
     if (ok) {
-      // 削除
       const idx = state.entities.findIndex(e => e.el === b);
       if (idx >= 0) state.entities.splice(idx, 1);
       b.remove();
       state.lockEl = null;
       onCorrect && onCorrect();
-      // 全滅時は降下を止める（スポーンが終わっている場合）
-      if (rootEl.children.length === 0) stopDescend();
+      if (!endless && rootEl.children.length === 0) stopDescend();
       return true;
     } else {
-      // 失敗: 選択中の個体を小さく即時降下
       const ent = state.entities.find(e => e.el === b);
       if (ent){ ent.y += Math.max(8, Math.floor(14 * descendSpeed)); place(ent.el, ent.x, ent.y); }
       onWrong && onWrong();
@@ -116,7 +112,6 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     }
   }
 
-  // 起動
   startSpawn();
   startDescend();
 
@@ -131,4 +126,3 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     stop: () => { stopDescend(); stopSpawn(); }
   };
 }
-  

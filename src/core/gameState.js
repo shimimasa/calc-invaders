@@ -13,7 +13,8 @@ export function getDefaultState(){
     unlockedSuits: { heart: true, spade: false, club: false, diamond: false },
     difficulty: 'normal',
     selectedSuits: { heart: true, spade: false, club: false, diamond: false },
-    selectedRanks: { 1:true, 2:false, 3:false, 4:false, 5:false, 6:false, 7:false, 8:false, 9:false, 10:false, 11:false, 12:false, 13:false }
+    selectedRanks: { 1:true, 2:false, 3:false, 4:false, 5:false, 6:false, 7:false, 8:false, 9:false, 10:false, 11:false, 12:false, 13:false },
+    questionCountMode: '10' // '5' | '10' | '20' | '30' | 'endless'
   };
 }
 
@@ -52,6 +53,8 @@ function normalizeState(input){
   const ranks = {}; for (let i=1;i<=13;i++) ranks[i] = !!rsel[i];
   if (!Object.values(ranks).some(Boolean)) ranks[1] = true;
   out.selectedRanks = ranks;
+  const qcm = String(input.questionCountMode || base.questionCountMode);
+  out.questionCountMode = ['5','10','20','30','endless'].includes(qcm) ? qcm : base.questionCountMode;
   return out;
 }
 
@@ -151,4 +154,10 @@ export function setSelectedRanks(sel){
   const next = {}; for (let i=1;i<=13;i++) next[i] = !!sel[i];
   if (!Object.values(next).some(Boolean)) next[1] = true;
   return updateState({ selectedRanks: next });
+}
+// 追加: 問題数モード
+export function setQuestionCountMode(mode){
+  const m = String(mode || '10');
+  const ok = ['5','10','20','30','endless'].includes(m) ? m : '10';
+  return updateState({ questionCountMode: ok });
 }
