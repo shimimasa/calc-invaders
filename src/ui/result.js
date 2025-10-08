@@ -1,5 +1,7 @@
 // src/ui/result.js
 export function showStageClear({ stageId, score, onRetry, onNext, onTitle, onCollection, earned }){
+  // ensure no duplicate overlays
+  document.querySelectorAll('.modal-overlay').forEach(el => el.remove());
   const wrap = document.createElement('div');
   wrap.className = 'modal-overlay';
   const panel = document.createElement('div');
@@ -52,11 +54,18 @@ export function showStageClear({ stageId, score, onRetry, onNext, onTitle, onCol
   wrap.append(panel);
   document.body.appendChild(wrap);
 
-  function cleanup(){ wrap.remove(); }
+  function cleanup(){
+    wrap.remove();
+    document.removeEventListener('keydown', onKey);
+  }
+  function onKey(e){ if (e.key === 'Escape') cleanup(); }
+  document.addEventListener('keydown', onKey);
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) cleanup(); });
   return cleanup;
 }
 
 export function showGameOver({ stageId, score, onRetry, onStageSelect, onTitle }){
+  document.querySelectorAll('.modal-overlay').forEach(el => el.remove());
   const wrap = document.createElement('div');
   wrap.className = 'modal-overlay';
   const panel = document.createElement('div');
@@ -84,6 +93,12 @@ export function showGameOver({ stageId, score, onRetry, onStageSelect, onTitle }
   wrap.append(panel);
   document.body.appendChild(wrap);
 
-  function cleanup(){ wrap.remove(); }
+  function cleanup(){
+    wrap.remove();
+    document.removeEventListener('keydown', onKey);
+  }
+  function onKey(e){ if (e.key === 'Escape') cleanup(); }
+  document.addEventListener('keydown', onKey);
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) cleanup(); });
   return cleanup;
 }
