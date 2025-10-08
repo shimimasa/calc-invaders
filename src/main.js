@@ -70,6 +70,8 @@ export async function start(stageId){
   const scoreEl = document.getElementById('score');
   const lifeEl = document.getElementById('life');
   const selectedEl = document.getElementById('selected');
+  const remainBar = document.getElementById('remain-bar');
+  const timeBar = document.getElementById('time-bar');
 
   let combo = 0;
   let lives = Number(lifeEl?.textContent || '3') || 3;
@@ -89,6 +91,7 @@ export async function start(stageId){
   const endless = (countMode === 'endless');
   const targetCount = endless ? questionsAll.length : Math.min(questionsAll.length, Number(countMode) || 10);
   const questions = endless ? questionsAll : questionsAll.slice(0, targetCount);
+  const totalCount = questions.length;
 
   // 難易度（スピードのみ）適用
   const diff = (loadState().difficulty || 'normal');
@@ -108,6 +111,8 @@ export async function start(stageId){
     stageEl.textContent = `${sym}${Number(rank)}`;
   }
   if (patternEl) patternEl.textContent = String(json?.generator?.pattern || '');
+  if (remainBar && !endless) remainBar.style.width = '100%';
+  if (timeBar) timeBar.style.width = '100%';
   
     function addScore(base){
       const gained = base + Math.min(combo * 10, 100);
@@ -231,7 +236,14 @@ export async function start(stageId){
         answer.value = '';
         if (ok) {
           const remainEl = document.getElementById('remain');
-          if (remainEl && countMode !== 'endless') remainEl.textContent = String(Math.max(0, Number(remainEl.textContent||questions.length) - 1));
+          if (remainEl && countMode !== 'endless'){
+            const left = Math.max(0, Number(remainEl.textContent||questions.length) - 1);
+            remainEl.textContent = String(left);
+            if (remainBar){
+              const ratio = totalCount > 0 ? (left / totalCount) : 0;
+              remainBar.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
+            }
+          }
         }
         ctrl.resume();
       });

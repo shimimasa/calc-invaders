@@ -40,6 +40,9 @@
     }
     #top{display:flex;gap:16px;align-items:center;margin:12px;flex-wrap:wrap}
     #top>div{padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-pill);background:var(--panel);box-shadow:0 1px 0 rgba(255,255,255,0.03) inset}
+    #top .pill{display:flex;align-items:center;gap:8px}
+    .bar{position:relative; width:120px; height:6px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden}
+    .bar__fill{position:absolute; inset:0; width:0%; background:linear-gradient(90deg, var(--accent-2), var(--accent)); border-radius:999px; transition:width var(--dur) var(--ease)}
     #rank{padding:2px 6px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--accent-2);font-size:12px}
     #pattern{border-bottom:1px dotted var(--accent-2);cursor:help}
     #grid{position:relative;width:min(900px,95vw);height:min(480px,60vh);margin:56px auto 120px;overflow:hidden}
@@ -97,14 +100,14 @@
   </head>
   <body>
     <div id="top">
-      <div>Score: <span id="score">0</span></div>
-      <div>Life: <span id="life">3</span></div>
-      <div>Stage: <span id="stage">♡1</span></div>
-      <div>Op: <span id="op">＋</span></div>
-      <div>Mode: <span id="mode">10問（標準）</span></div>
-      <div>Remain: <span id="remain">-</span></div>
-      <div><span id="rank"></span> <small title="生成パターン"><span id="pattern"></span></small></div>
-      <div>Time: <span id="time">60</span>s</div>
+      <div class="pill">Score: <span id="score">0</span></div>
+      <div class="pill">Life: <span id="life">3</span></div>
+      <div class="pill">Stage: <span id="stage">♡1</span></div>
+      <div class="pill">Op: <span id="op">＋</span></div>
+      <div class="pill">Mode: <span id="mode">10問（標準）</span></div>
+      <div class="pill">Remain: <span id="remain">-</span> <span class="bar"><span id="remain-bar" class="bar__fill"></span></span></div>
+      <div class="pill"><span id="rank"></span> <small title="生成パターン"><span id="pattern"></span></small></div>
+      <div class="pill">Time: <span id="time">60</span>s <span class="bar"><span id="time-bar" class="bar__fill"></span></span></div>
     </div>
 
     <div id="title"></div>
