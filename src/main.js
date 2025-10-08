@@ -79,6 +79,7 @@ let lives = Number(lifeEl?.textContent || '3') || 3;
 let score = Number(scoreEl?.textContent || '0') || 0;
 let cleared = 0; // 正解累計（クリア判定はこれで行う）
 
+let submitBusy = false; // 追加: 送信多重防止
   
       
       // ステージJSONを取得
@@ -251,20 +252,24 @@ if (remainElInit && !endless) {
   grid.addEventListener('pointerup', selectHandler);
   
   function submit(){
+    // 追加: 多重発火ガード
+    if (submitBusy) return;
+    submitBusy = true;
+    try { if (fire) fire.disabled = true; } catch(_e){}
+  
     const selected = ctrl.getSelected?.();
-    if (!selected || !selected.isConnected) return;
+    if (!selected || !selected.isConnected) { submitBusy = false; try { if (fire) fire.disabled = false; } catch(_e){}; return; }
     const needRem = selected.dataset.remainder != null;
     const normalized = prepareAnswer(answer.value, { needRemainder: needRem });
-    if (normalized == null) return;
-
+    if (normalized == null) { submitBusy = false; try { if (fire) fire.disabled = false; } catch(_e){}; return; }
+  
     const willHit = ctrl.previewCheck?.(normalized) === true;
     const fromEl = document.getElementById('fire') || answer;
     const toEl = selected;
-    // 画面下パネル中央から狙った敵の中心へ
     const panel = document.getElementById('panel');
     const pr = panel?.getBoundingClientRect?.();
     const fromPos = pr ? { x: pr.left + pr.width/2, y: pr.top + pr.height/2 } : undefined;
-
+  
     playSfx('shot');
     shootProjectile({ fromEl, toEl, from: fromPos, color: willHit ? '#3BE3FF' : '#ff5252', hit: willHit })
       .then(() => {
@@ -273,11 +278,11 @@ if (remainElInit && !endless) {
           showHitEffect({ rootEl: document.body, anchorEl: toEl, text: '+100' });
         } else {
           playSfx('miss');
-          // showMissEffect({ rootEl: document.body });
         }
+  
         const ok = ctrl.submit(normalized);
-        // 入力は正誤に関わらずクリア
         answer.value = '';
+  
         if (ok) {
           const remainEl = document.getElementById('remain');
           if (remainEl && countMode !== 'endless'){
@@ -290,9 +295,13 @@ if (remainElInit && !endless) {
           }
           try { console.debug('[stage] progress', { cleared: session.cleared, left: (session.target - session.cleared), target: session.target }); } catch(_e){}
         }
-        
+  
         ctrl.resume();
         try { document.body.classList.remove('paused'); } catch(_e){}
+      })
+      .finally(() => {
+        submitBusy = false;
+        try { if (fire) fire.disabled = false; } catch(_e){}
       });
   }
   if (fire) { fire.addEventListener('click', submit); }
