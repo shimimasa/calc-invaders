@@ -27,7 +27,7 @@ export function renderCardTower({ rootEl, onSelectStage, onClose }){
   header.append(title, close);
 
   const legend = document.createElement('div');
-  legend.textContent = '♡=足し算 ＋ / ♠=引き算 − / ♣=かけ算 × / ♦=わり算 ÷ （クリックで開始。ロックは未解放）';
+  legend.textContent = '♡=足し算 ＋ / ♠=引き算 − / ♣=かけ算 × / ♦=わり算 ÷（閲覧専用: 進捗/獲得状況の確認。開始はタイトルから）';
   legend.style.opacity = '0.85'; legend.style.margin = '6px 0 10px';
 
   // filters
@@ -89,16 +89,7 @@ export function renderCardTower({ rootEl, onSelectStage, onClose }){
       if (!isUnlocked || rankLocked){ btn.style.filter = 'grayscale(0.4)'; }
       if (rankLocked && isUnlocked){ btn.title = `未解放: ランク${maxRank}まで`; }
 
-      btn.addEventListener("click", () => {
-        const st = loadState();
-        if (st.unlockedSuits?.[suit] !== true) return;
-        const prog = getRankProgress();
-        const mr = Number(prog?.[suit] || 0);
-        if (!(mr >= rank)) return;
-        setLastStageId(id);
-        wrap.remove();
-        if (typeof onSelectStage === 'function') onSelectStage(id);
-      });
+      // 閲覧専用（開始はタイトルから）。クリックしても遷移しない
 
       grid.appendChild(btn);
       btnMap.set(id, btn);

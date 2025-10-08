@@ -70,6 +70,16 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
       if (!next.heart && !next.spade && !next.club && !next.diamond) next[s] = true;
       setSelectedSuits(next);
       styleToggle(btn, !!next[s]);
+      // スーツ切替時: ランク選択は解放範囲内の1へ合わせる
+      const suit = activeSuit();
+      const prog = getRankProgress();
+      const maxRank = Number(prog?.[suit] || 1);
+      const curRanks = loadState().selectedRanks || {};
+      const nextRanks = {}; for (let i=1;i<=13;i++) nextRanks[i] = false; nextRanks[Math.max(1, Math.min(13, maxRank))] = true;
+      setSelectedRanks(nextRanks);
+      // UI更新
+      rankButtons.forEach((b, idx) => styleToggle(b, !!nextRanks[idx+1]));
+      applyLocks();
       updateRankTooltips(activeSuit());
     });
     suitGroup.appendChild(btn);

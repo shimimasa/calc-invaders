@@ -1,5 +1,5 @@
 export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 5, descendSpeed = 1, spawnIntervalSec = 2.5, bottomY, onBottomReached, endless = false }) {
-  const state = { lockEl: null, entities: [], paused: false, spawnIdx: 0, rafId: null, lastTs: null, spawnAccumSec: 0 };
+  const state = { lockEl: null, entities: [], paused: false, spawnIdx: 0, rafId: null, lastTs: null, spawnAccumSec: 0, startMs: null, bottomFired: false };
   if (!rootEl) throw new Error('rootEl required');
   rootEl.innerHTML = "";
   rootEl.style.position = 'relative';
@@ -46,6 +46,7 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
   function loop(ts){
     state.rafId = requestAnimationFrame(loop);
     const now = ts || performance.now();
+    if (state.startMs == null) state.startMs = now;
     const last = state.lastTs == null ? now : state.lastTs;
     state.lastTs = now;
     let dt = (now - last) / 1000; // seconds
@@ -77,8 +78,12 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     }
     // 底判定
     const limit = Number.isFinite(bottomY) ? bottomY : (field.h - 64);
-    const reached = state.entities.some(ent => ent.y >= limit);
-    if (reached && onBottomReached) onBottomReached();
+    const reached = state.entities.length > 0 && Number.isFinite(limit) && (field.h > 80) && state.entities.some(ent => ent.y >= limit);
+    const armed = (now - state.startMs) > 600; // 起動直後の誤判定を抑止
+    if (!state.bottomFired && reached && armed && onBottomReached){
+      state.bottomFired = true;
+      onBottomReached();
+    }
   }
 
   function lock(el) {
