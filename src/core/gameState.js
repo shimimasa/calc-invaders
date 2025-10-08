@@ -1,9 +1,11 @@
 // GameState persistence utilities (localStorage)
 
 export const STORAGE_KEY = "ci:v1";
+const SCHEMA_VERSION = 2;
 
 export function getDefaultState(){
   return {
+    schemaVersion: SCHEMA_VERSION,
     lastStageId: null,
     score: 0,
     lives: 3,
@@ -70,7 +72,30 @@ function normalizeState(input){
   out.selectedRanks = ranks;
   const qcm = String(input.questionCountMode || base.questionCountMode);
   out.questionCountMode = ['5','10','20','30','endless'].includes(qcm) ? qcm : base.questionCountMode;
+  // version stamp
+  out.schemaVersion = Number.isFinite(input.schemaVersion) ? input.schemaVersion : SCHEMA_VERSION;
   return out;
+}
+
+// ---- Migration ----
+function migrateState(raw){
+  try {
+    if (!raw || typeof raw !== 'object') return getDefaultState();
+    const v = Number(raw.schemaVersion || 1);
+    let cur = { ...raw };
+    if (v < 2) {
+      // v2 introduces: cardMeta, gameSettings, a11ySettings, questionCountMode default
+      if (!cur.cardMeta || typeof cur.cardMeta !== 'object') cur.cardMeta = {};
+      if (!cur.gameSettings || typeof cur.gameSettings !== 'object') cur.gameSettings = { timeLimitEnabled: false, timeLimitSec: 60 };
+      if (!cur.a11ySettings || typeof cur.a11ySettings !== 'object') cur.a11ySettings = { largeButtons: false, highContrast: false };
+      if (typeof cur.questionCountMode === 'undefined') cur.questionCountMode = '10';
+      cur.schemaVersion = 2;
+    }
+    // future migrations: if (cur.schemaVersion < 3) { ...; cur.schemaVersion = 3; }
+    return cur;
+  } catch (_e) {
+    return getDefaultState();
+  }
 }
 
 export function loadState(){
@@ -78,7 +103,8 @@ export function loadState(){
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return getDefaultState();
     const parsed = JSON.parse(raw);
-    return normalizeState(parsed);
+    const migrated = migrateState(parsed);
+    return normalizeState(migrated);
   } catch (e) {
     // 破損時は安全に初期化
     return getDefaultState();
@@ -87,9 +113,11 @@ export function loadState(){
 
 export function saveState(state){
   const safe = normalizeState(state);
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(safe)); }
+  // stamp current schema version on save
+  const stamped = { ...safe, schemaVersion: SCHEMA_VERSION };
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stamped)); }
   catch (_e) { /* ignore quota or privacy errors */ }
-  return safe;
+  return stamped;
 }
 
 export function resetState(){
