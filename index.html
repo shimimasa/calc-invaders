@@ -38,6 +38,18 @@
       color: var(--text);
       font-family: var(--font-sans);
     }
+    /* High Contrast Mode (override tokens) */
+    body.a11y-contrast{ --panel:#0b1030; --panel-2:#0a0e26; --border:#6aa9ff; --text:#ffffff; --accent:#5ad1ff; --accent-2:#a7dcff; }
+    /* Large Buttons Mode */
+    body.a11y-large .btn{ padding:14px 18px; font-size:18px; }
+    body.a11y-large input{ font-size:20px; }
+    body.a11y-large .pill{ font-size:16px; padding:6px 12px; }
+    body.a11y-large #panel{ gap:10px; }
+    body.a11y-large .input-lg{ min-width:min(680px, 86vw); }
+    /* Reduced Motion Mode */
+    body.a11y-reduced *,
+    body.a11y-reduced *::before,
+    body.a11y-reduced *::after{ animation-duration:0.001s !important; animation-iteration-count:1 !important; transition-duration:0s !important; }
     #top{display:flex;gap:16px;align-items:center;margin:12px;flex-wrap:wrap}
     #top>div{padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-pill);background:var(--panel);box-shadow:0 1px 0 rgba(255,255,255,0.03) inset}
     #top .pill{display:flex;align-items:center;gap:8px}
