@@ -19,6 +19,7 @@ describe('enemies focusable with tabindex', () => {
     const btn = root.querySelector('.enemy');
     expect(btn.getAttribute('role')).toBe('button');
     expect(btn.getAttribute('tabindex')).toBe('0');
+    expect(btn.getAttribute('aria-label')).toContain('のこたえは');
     ctrl.stop();
   });
 

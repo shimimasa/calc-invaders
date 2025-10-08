@@ -1,5 +1,6 @@
 // src/ui/title.js
 import { loadState, setDifficulty, setSelectedSuits, setSelectedRanks, setQuestionCountMode } from '../core/gameState.js';
+import { mountSettings } from './settings.js';
 
 const SUITS = ['heart','spade','club','diamond'];
 const SUIT_LABEL = { heart: '♡', spade: '♠', club: '♣', diamond: '♦' };
@@ -149,7 +150,13 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
     onOpenStageSelect?.();
   });
 
-  [start, select].forEach(b => {
+  const btnSettings = document.createElement('button');
+  btnSettings.textContent = '設定';
+  btnSettings.addEventListener('click', () => {
+    openSettingsOverlay();
+  });
+
+  [start, select, btnSettings].forEach(b => {
     b.style.padding = '8px 12px';
     b.style.borderRadius = '8px';
     b.style.border = '1px solid #31364b';
@@ -158,7 +165,7 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
     b.style.cursor = 'pointer';
   });
 
-  btns.append(start, select);
+  btns.append(start, select, btnSettings);
 
   panel.append(h1, legend, diffBox, suitBox, rankBox, countBox, btns);
   wrap.append(panel);
@@ -195,4 +202,20 @@ function styleToggle(btn, active){
   btn.style.border = '1px solid #31364b';
   btn.style.background = active ? '#2a355f' : '#1a2038';
   btn.style.color = active ? '#9ecbff' : '#e8e8e8';
+}
+
+function openSettingsOverlay(){
+  const wrap = document.createElement('div');
+  Object.assign(wrap.style, { position:'fixed', inset:'0', display:'grid', placeItems:'center', background:'rgba(0,0,0,0.6)', zIndex:'1100' });
+  const panel = document.createElement('div');
+  Object.assign(panel.style, { background:'#14182c', border:'1px solid #31364b', borderRadius:'12px', padding:'16px 20px', minWidth:'min(520px,92vw)', color:'#e8e8e8', maxHeight:'85vh', overflow:'auto' });
+  const h = document.createElement('h3'); h.textContent = '設定'; h.style.marginTop = '0';
+  const content = document.createElement('div');
+  const close = document.createElement('button'); close.textContent = '閉じる';
+  Object.assign(close.style, { padding:'8px 12px', borderRadius:'8px', border:'1px solid #31364b', background:'#1a2038', color:'#e8e8e8', cursor:'pointer', marginTop:'12px' });
+  close.addEventListener('click', () => wrap.remove());
+  panel.append(h, content, close);
+  wrap.append(panel);
+  document.body.appendChild(wrap);
+  try { mountSettings({ rootEl: content }); } catch(_e){}
 }

@@ -23,6 +23,12 @@ export async function start(stageId){
     // コレクション「このステージで遊ぶ」対応
     const onPlay = (e) => { const id = e?.detail?.stageId; if (id) { window.removeEventListener('ci:playStage', onPlay); start(`${id}?q=${(loadState().questionCountMode||'10')}`); } };
     window.addEventListener('ci:playStage', onPlay, { once: true });
+    // HUD/GRID/PANEL を隠す & 前オーバーレイの掃除
+    const topEl = document.getElementById('top'); if (topEl) topEl.style.display = 'none';
+    const gridEl = document.getElementById('grid'); if (gridEl) gridEl.style.display = 'none';
+    const panelEl = document.getElementById('panel'); if (panelEl) panelEl.style.display = 'none';
+    const towerRoot0 = document.getElementById('tower'); if (towerRoot0) towerRoot0.innerHTML = '';
+    const titleRoot0 = document.getElementById('title'); if (titleRoot0) titleRoot0.innerHTML = '';
     // タイトルUI
     const root = document.getElementById('title');
     mountTitle({
@@ -47,6 +53,12 @@ export async function start(stageId){
   }
 
   setLastStageId(stageId);
+  // HUD/GRID/PANEL を表示し、タイトル/タワーを掃除
+  const topEl2 = document.getElementById('top'); if (topEl2) topEl2.style.display = '';
+  const gridShow = document.getElementById('grid'); if (gridShow) gridShow.style.display = '';
+  const panelShow = document.getElementById('panel'); if (panelShow) panelShow.style.display = '';
+  const towerRoot1 = document.getElementById('tower'); if (towerRoot1) towerRoot1.innerHTML = '';
+  const titleRoot1 = document.getElementById('title'); if (titleRoot1) titleRoot1.innerHTML = '';
   const grid = document.getElementById('grid');
   const answer = document.getElementById('answer');
   const fire = document.getElementById('fire');
@@ -164,7 +176,7 @@ export async function start(stageId){
       if (lives <= 0) return gameOver();
     }
   
-    const ctrl = spawnController({
+    let ctrl = spawnController({
       rootEl: grid,
       questions,
       cols: json.enemySet?.cols ?? 5,
@@ -182,6 +194,7 @@ export async function start(stageId){
     const btn = e.target.closest('.enemy');
     if (!btn) return;
     ctrl.lock(btn);
+    ctrl.pause();
     selectedEl && (selectedEl.textContent = 'SELECTED: ' + btn.textContent);
     answer && answer.focus();
   };
@@ -214,17 +227,19 @@ export async function start(stageId){
           // showMissEffect({ rootEl: document.body });
         }
         const ok = ctrl.submit(normalized);
+        // 入力は正誤に関わらずクリア
+        answer.value = '';
         if (ok) {
-          answer.value = '';
           const remainEl = document.getElementById('remain');
           if (remainEl && countMode !== 'endless') remainEl.textContent = String(Math.max(0, Number(remainEl.textContent||questions.length) - 1));
         }
+        ctrl.resume();
       });
   }
   if (fire) { fire.addEventListener('click', submit); fire.addEventListener('pointerup', submit); }
   if (answer) answer.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
   ensureLiveRegion(document.body);
-  attachKeyboardSubmission({ inputEl: answer, onSubmit: submit, onClear: () => { /* selection clear is in game.js usually */ } });
+  attachKeyboardSubmission({ inputEl: answer, onSubmit: submit, onClear: () => { try { ctrl.clear(); ctrl.resume(); } catch(_e){} } });
 }
 
 export async function startReview(stage){
