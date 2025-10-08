@@ -5,7 +5,7 @@ const SUITS = ['heart','spade','club','diamond'];
 const SUIT_LABEL = { heart: '♡', spade: '♠', club: '♣', diamond: '♦' };
 const SUIT_OP = { heart: '＋', spade: '−', club: '×', diamond: '÷' };
 
-export function mountTitle({ rootEl, onStart }){
+export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
   if (!rootEl) return;
   const st = loadState();
   rootEl.innerHTML = '';
@@ -129,9 +129,11 @@ export function mountTitle({ rootEl, onStart }){
   });
   countBox.append(countLabel, countGroup);
 
+  const btns = document.createElement('div');
+  btns.style.display = 'flex'; btns.style.gap = '8px'; btns.style.marginTop = '16px'; btns.style.flexWrap = 'wrap';
+
   const start = document.createElement('button');
   start.textContent = 'スタート';
-  start.style.marginTop = '16px';
   start.addEventListener('click', () => {
     const cur = loadState();
     const suit = activeSuit();
@@ -141,7 +143,24 @@ export function mountTitle({ rootEl, onStart }){
     rootEl.innerHTML = '';
   });
 
-  panel.append(h1, legend, diffBox, suitBox, rankBox, countBox, start);
+  const select = document.createElement('button');
+  select.textContent = 'ステージ選択（52枚）';
+  select.addEventListener('click', () => {
+    onOpenStageSelect?.();
+  });
+
+  [start, select].forEach(b => {
+    b.style.padding = '8px 12px';
+    b.style.borderRadius = '8px';
+    b.style.border = '1px solid #31364b';
+    b.style.background = '#1a2038';
+    b.style.color = '#e8e8e8';
+    b.style.cursor = 'pointer';
+  });
+
+  btns.append(start, select);
+
+  panel.append(h1, legend, diffBox, suitBox, rankBox, countBox, btns);
   wrap.append(panel);
   rootEl.appendChild(wrap);
 

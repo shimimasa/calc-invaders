@@ -27,6 +27,12 @@ export async function start(stageId){
           const r = { ...(loadState().selectedRanks||{}) }; for (let i=1;i<=13;i++) r[i] = !!r[i]; r[rank] = true; setSelectedRanks(r);
         }
         start(`${suit}_${String(rank).padStart(2,'0')}?q=${String(countMode)}`);
+      },
+      onOpenStageSelect: () => {
+        const towerRoot = document.getElementById('tower');
+        if (towerRoot){
+          renderCardTower({ rootEl: towerRoot, onSelectStage: (id) => start(`${id}?q=${(loadState().questionCountMode||'10')}`) });
+        }
       }
     });
     return;
