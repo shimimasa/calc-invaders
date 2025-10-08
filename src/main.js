@@ -98,9 +98,10 @@ let cleared = 0; // 正解累計（クリア判定はこれで行う）
   const endless = (countMode === 'endless');
   const targetCount = endless ? questionsAll.length : Math.min(questionsAll.length, Number(countMode) || 10);
   const questions = endless ? questionsAll : questionsAll.slice(0, targetCount);
-  const totalCount = questions.length;
+  // 既存
+const totalCount = questions.length;
 
-  // 追加:
+// 追加
 const session = { target: totalCount, cleared: 0, ended: false };
 const remainElInit = document.getElementById('remain');
 if (remainElInit && !endless) {
@@ -172,8 +173,8 @@ if (remainElInit && !endless) {
       const after = new Set((loadState().flippedCards)||[]);
       earned = (!before.has(curId) && after.has(curId));
     } catch {}
-  
     try { recordCardAcquired(curId, { score: totalScore }); } catch {}
+  
     stopBgm('bgm_stage');
     playSfx('clear');
   
@@ -200,14 +201,13 @@ if (remainElInit && !endless) {
     } catch(_e){}
   }
 
-
   function onCorrect(){
     combo += 1;
     addScore(json.rules?.scorePerHit ?? 100);
     selectedEl && (selectedEl.textContent = "SELECTED: なし");
     setLiveStatus('Correct ✓');
   
-    // 正解累計でのみ判定
+    // 正解数でのみ判定
     session.cleared += 1;
     try { console.debug('[stage] correct', { cleared: session.cleared, target: session.target }); } catch(_e){}
   
@@ -282,14 +282,15 @@ if (remainElInit && !endless) {
           const remainEl = document.getElementById('remain');
           if (remainEl && countMode !== 'endless'){
             const left = Math.max(0, session.target - session.cleared);
-remainEl.textContent = String(left);
-if (remainBar){
-  const ratio = session.target > 0 ? (left / session.target) : 0;
-  remainBar.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
-}
-try { console.debug('[stage] progress', { cleared: session.cleared, left, target: session.target }); } catch(_e){}
+            remainEl.textContent = String(left);
+            if (remainBar){
+              const ratio = session.target > 0 ? (left / session.target) : 0;
+              remainBar.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
+            }
           }
+          try { console.debug('[stage] progress', { cleared: session.cleared, left: (session.target - session.cleared), target: session.target }); } catch(_e){}
         }
+        
         ctrl.resume();
         try { document.body.classList.remove('paused'); } catch(_e){}
       });
