@@ -6,41 +6,82 @@ export function mountSettings({ rootEl }){
   applyAudioSettingsFromStorage();
 
   rootEl.innerHTML = "";
-  const wrap = document.createElement('div');
-  const sfx = document.createElement('input'); sfx.type = 'checkbox'; sfx.id = 'toggle-sfx';
-  const bgm = document.createElement('input'); bgm.type = 'checkbox'; bgm.id = 'toggle-bgm';
-  const vol = document.createElement('input'); vol.type = 'range'; vol.min = '0'; vol.max = '1'; vol.step = '0.05'; vol.id = 'master-volume';
-  const ls1 = document.createElement('label'); ls1.setAttribute('for','toggle-sfx'); ls1.textContent = '効果音(SFX)';
-  const ls2 = document.createElement('label'); ls2.setAttribute('for','toggle-bgm'); ls2.textContent = '音楽(BGM)';
-  const lsv = document.createElement('label'); lsv.setAttribute('for','master-volume'); lsv.textContent = '音量(全体)';
-  // Time limit
-  const timeToggle = document.createElement('input'); timeToggle.type = 'checkbox'; timeToggle.id = 'toggle-time';
-  const timeLabel = document.createElement('label'); timeLabel.setAttribute('for','toggle-time'); timeLabel.textContent = '時間制限を有効にする';
+  const container = document.createElement('div');
+  container.className = 'col';
+
+  // --- Audio Section ---
+  const secAudio = sectionCard('🔊 音の設定', '効果音やBGM、全体の音量を調整できます。');
+  const rowSfx = rowToggle('効果音 (SFX)', 'toggle-sfx');
+  const rowBgm = rowToggle('音楽 (BGM)', 'toggle-bgm');
+  const rowVol = document.createElement('div'); rowVol.className = 'row';
+  const lVol = labelFor('master-volume', '音量 (全体)');
+  const vol = document.createElement('input'); vol.type = 'range'; vol.min = '0'; vol.max = '1'; vol.step = '0.05'; vol.id = 'master-volume'; vol.style.flex = '1';
+  const volVal = document.createElement('span'); volVal.style.minWidth = '48px'; volVal.style.textAlign = 'right';
+  rowVol.append(lVol, vol, volVal);
+  secAudio.body.append(rowSfx.wrap, rowBgm.wrap, rowVol);
+
+  // --- Game Section ---
+  const secGame = sectionCard('🕒 ゲーム設定', '時間制限の有効/無効と秒数を設定します。');
+  const rowTime = rowToggle('時間制限を有効にする', 'toggle-time');
+  const rowSec = document.createElement('div'); rowSec.className = 'row';
+  const lSec = labelFor('time-sec', '時間制限 (秒)');
   const timeSec = document.createElement('input'); timeSec.type = 'number'; timeSec.min = '10'; timeSec.max = '600'; timeSec.step = '5'; timeSec.id = 'time-sec';
-  // A11y
-  const bigBtn = document.createElement('input'); bigBtn.type = 'checkbox'; bigBtn.id = 'a11y-big';
-  const bigLbl = document.createElement('label'); bigLbl.setAttribute('for','a11y-big'); bigLbl.textContent = 'ボタンを大きくする';
-  const hiContrast = document.createElement('input'); hiContrast.type = 'checkbox'; hiContrast.id = 'a11y-contrast';
-  const hiLbl = document.createElement('label'); hiLbl.setAttribute('for','a11y-contrast'); hiLbl.textContent = 'ハイコントラスト';
+  rowSec.append(lSec, timeSec);
+  secGame.body.append(rowTime.wrap, rowSec);
 
-  wrap.append(ls1, sfx, ls2, bgm, lsv, vol, timeLabel, timeToggle, timeSec, bigLbl, bigBtn, hiLbl, hiContrast);
-  rootEl.append(wrap);
+  // --- Accessibility Section ---
+  const secA11y = sectionCard('♿ アクセシビリティ', '見やすさ/押しやすさの配慮を切り替えます。');
+  const rowBig = rowToggle('ボタンを大きくする', 'a11y-big');
+  const rowHi = rowToggle('ハイコントラスト', 'a11y-contrast');
+  secA11y.body.append(rowBig.wrap, rowHi.wrap);
 
-  sfx.checked = getSfxEnabled();
-  bgm.checked = getBgmEnabled();
-  vol.value = String(getMasterVolume());
+  container.append(secAudio.card, secGame.card, secA11y.card);
+  rootEl.append(container);
+
+  // ---- bind values ----
   const st = loadState();
-  timeToggle.checked = !!st.gameSettings?.timeLimitEnabled;
+  rowSfx.input.checked = getSfxEnabled();
+  rowBgm.input.checked = getBgmEnabled();
+  vol.value = String(getMasterVolume()); volVal.textContent = Math.round(Number(vol.value) * 100) + '%';
+  rowTime.input.checked = !!st.gameSettings?.timeLimitEnabled;
   timeSec.value = String(st.gameSettings?.timeLimitSec || 60);
-  bigBtn.checked = !!st.a11ySettings?.largeButtons;
-  hiContrast.checked = !!st.a11ySettings?.highContrast;
-  sfx.addEventListener('change', () => setSfxEnabled(sfx.checked));
-  bgm.addEventListener('change', () => setBgmEnabled(bgm.checked));
-  vol.addEventListener('input', () => setMasterVolume(vol.value));
-  timeToggle.addEventListener('change', () => setGameSettings({ timeLimitEnabled: timeToggle.checked }));
+  rowBig.input.checked = !!st.a11ySettings?.largeButtons;
+  rowHi.input.checked = !!st.a11ySettings?.highContrast;
+
+  // ---- events ----
+  rowSfx.input.addEventListener('change', () => setSfxEnabled(rowSfx.input.checked));
+  rowBgm.input.addEventListener('change', () => setBgmEnabled(rowBgm.input.checked));
+  vol.addEventListener('input', () => { setMasterVolume(vol.value); volVal.textContent = Math.round(Number(vol.value) * 100) + '%'; });
+  rowTime.input.addEventListener('change', () => setGameSettings({ timeLimitEnabled: rowTime.input.checked }));
   timeSec.addEventListener('change', () => setGameSettings({ timeLimitSec: Number(timeSec.value) }));
-  bigBtn.addEventListener('change', () => setA11ySettings({ largeButtons: bigBtn.checked }));
-  hiContrast.addEventListener('change', () => setA11ySettings({ highContrast: hiContrast.checked }));
+  rowBig.input.addEventListener('change', () => setA11ySettings({ largeButtons: rowBig.input.checked }));
+  rowHi.input.addEventListener('change', () => setA11ySettings({ highContrast: rowHi.input.checked }));
+}
+
+function sectionCard(title, desc){
+  const card = document.createElement('div'); card.className = 'card';
+  const head = document.createElement('div'); head.className = 'col';
+  const h = document.createElement('h3'); h.textContent = title;
+  const p = document.createElement('small'); p.textContent = desc;
+  head.append(h, p);
+  const body = document.createElement('div'); body.className = 'col';
+  card.append(head, body);
+  return { card, body };
+}
+
+function rowToggle(labelText, id){
+  const wrap = document.createElement('div'); wrap.className = 'row';
+  const label = labelFor(id, labelText);
+  const input = document.createElement('input'); input.type = 'checkbox'; input.id = id;
+  wrap.append(label, input);
+  return { wrap, input };
+}
+
+function labelFor(forId, text){
+  const l = document.createElement('label');
+  l.setAttribute('for', forId);
+  l.textContent = text;
+  return l;
 }
 
 
