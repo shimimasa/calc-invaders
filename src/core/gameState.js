@@ -1,7 +1,7 @@
 // GameState persistence utilities (localStorage)
 
 export const STORAGE_KEY = "ci:v1";
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 export function getDefaultState(){
   return {
@@ -20,8 +20,8 @@ export function getDefaultState(){
     selectedSuits: { heart: true, spade: false, club: false, diamond: false },
     selectedRanks: { 1:true, 2:false, 3:false, 4:false, 5:false, 6:false, 7:false, 8:false, 9:false, 10:false, 11:false, 12:false, 13:false },
     questionCountMode: '10', // '5' | '10' | '20' | '30' | 'endless'
-    // 段階解放
-    rankProgress: { heart: 1, spade: 0, club: 0, diamond: 0 },
+    // 段階解放（初期は全スーツ1を解放）
+    rankProgress: { heart: 1, spade: 1, club: 1, diamond: 1 },
     unlockedCounts: ['5']
   };
 }
@@ -94,7 +94,11 @@ function normalizeState(input){
     club: clampRank(rp.club),
     diamond: clampRank(rp.diamond)
   };
+  // 全スーツ最低1を保証
   if (out.rankProgress.heart < 1) out.rankProgress.heart = 1;
+  if (out.rankProgress.spade < 1) out.rankProgress.spade = 1;
+  if (out.rankProgress.club < 1) out.rankProgress.club = 1;
+  if (out.rankProgress.diamond < 1) out.rankProgress.diamond = 1;
   // version stamp
   out.schemaVersion = Number.isFinite(input.schemaVersion) ? input.schemaVersion : SCHEMA_VERSION;
   return out;
@@ -119,6 +123,15 @@ function migrateState(raw){
       if (!cur.rankProgress || typeof cur.rankProgress !== 'object') cur.rankProgress = { heart: 1, spade: 0, club: 0, diamond: 0 };
       if (!Array.isArray(cur.unlockedCounts)) cur.unlockedCounts = ['5'];
       cur.schemaVersion = 3;
+    }
+    if (cur.schemaVersion < 4){
+      // v4: すべてのスーツでランク1を初期解放
+      try {
+        const rp = cur.rankProgress && typeof cur.rankProgress === 'object' ? cur.rankProgress : { heart: 1, spade: 0, club: 0, diamond: 0 };
+        const fix = (v) => (Number.isFinite(v) && v > 0) ? v : 1;
+        cur.rankProgress = { heart: fix(rp.heart), spade: fix(rp.spade), club: fix(rp.club), diamond: fix(rp.diamond) };
+      } catch(_e){ cur.rankProgress = { heart: 1, spade: 1, club: 1, diamond: 1 }; }
+      cur.schemaVersion = 4;
     }
     // future migrations: if (cur.schemaVersion < 4) { ...; cur.schemaVersion = 4; }
     return cur;

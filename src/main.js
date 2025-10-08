@@ -104,6 +104,11 @@ export async function start(stageId){
     hard:  { descendSpeed: 1.5, spawnIntervalSec: 2.0 }
   };
   const tuned = speedMap[diff] || speedMap.normal;
+  // ステージ個別値との合成（stage値 × 難易度係数）をクランプ
+  const stageDesc = Number.isFinite(json?.enemySet?.descendSpeed) ? json.enemySet.descendSpeed : 1.0;
+  const stageSpawn = Number.isFinite(json?.enemySet?.spawnIntervalSec) ? json.enemySet.spawnIntervalSec : 2.5;
+  const descend = Math.max(0.4, Math.min(3.0, stageDesc * tuned.descendSpeed));
+  const spawnInt = Math.max(0.6, Math.min(5.0, stageSpawn / (tuned.descendSpeed))); // 速い難易度では間隔を短めに
 
   // ステージ表示（パターンも）
   const stageEl = document.getElementById('stage');
@@ -200,9 +205,9 @@ export async function start(stageId){
       rootEl: grid,
       questions,
       cols: json.enemySet?.cols ?? 5,
-      descendSpeed: tuned.descendSpeed,
-      spawnIntervalSec: tuned.spawnIntervalSec,
-      bottomY: 300,
+      descendSpeed: descend,
+      spawnIntervalSec: spawnInt,
+      bottomY: Math.max(120, (grid?.getBoundingClientRect?.().height || 480) - 64),
       onBottomReached: () => gameOver(),
       onCorrect,
       onWrong,

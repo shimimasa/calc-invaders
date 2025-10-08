@@ -144,6 +144,7 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     stop: () => { if (state.rafId) cancelAnimationFrame(state.rafId); state.rafId = null; },
     // 追加: 残スポーン/盤面情報
     isSpawningDone: () => !wantMoreSpawns(),
+    getSpawnedCount: () => state.spawnIdx,
     getActiveCount: () => state.entities.length
   };
 }
