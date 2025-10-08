@@ -6,17 +6,93 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231a2038'/%3E%3Ctext x='2' y='13' font-size='12'%3E%F0%9F%A7%AE%3C/text%3E%3C/svg%3E">
     <title>計算インベーダー (MVP)</title>
     <style>
-    body{background:#0e1020;color:#e8e8e8;font-family:system-ui,ui-sans-serif}
-    #top{display:flex;gap:16px;align-items:center;margin:12px}
-    #rank{padding:2px 6px;border:1px solid #31364b;border-radius:6px;background:#14182c;color:#9ecbff;font-size:12px}
-    #pattern{border-bottom:1px dotted #8cd1ff;cursor:help}
+    :root{
+      /* palette */
+      --bg:#0e1020;
+      --panel:#14182c; --panel-2:#0f142a;
+      --border:#31364b; --border-soft:#262b40;
+      --text:#e8e8e8; --muted:#8b90a5;
+      --accent:#3BE3FF; --accent-2:#9ecbff;
+      --danger:#ff5252; --ok:#52ffa6; --warn:#ffb84d;
+      /* suits */
+      --heart:#ff6b81; --spade:#6aa9ff; --club:#5bd69b; --diamond:#7ee0ff;
+      /* elevation */
+      --shadow-sm:0 2px 8px rgba(0,0,0,0.25);
+      --shadow-md:0 8px 24px rgba(0,0,0,0.45);
+      --shadow-lg:0 16px 48px rgba(0,0,0,0.55);
+      /* radius & space */
+      --radius-sm:8px; --radius:12px; --radius-lg:16px; --radius-pill:999px;
+      --space-xs:6px; --space-sm:8px; --space:12px; --space-lg:16px; --space-xl:24px;
+      /* font */
+      --font-sans:system-ui, "Noto Sans JP", ui-sans-serif;
+      --font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      /* motion */
+      --dur-fast:.14s; --dur:.18s; --dur-slow:.28s; --ease:cubic-bezier(0.2,0.7,0.2,1);
+      /* z-index */
+      --z-overlay:1000; --z-modal:1100; --z-tooltip:1200;
+      /* buttons */
+      --btn-bg:#1a2038; --btn-bg-active:#2a355f;
+    }
+    body{
+      background: radial-gradient(1000px 600px at 50% -10%, #182046 0%, var(--bg) 60%), var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+    }
+    #top{display:flex;gap:16px;align-items:center;margin:12px;flex-wrap:wrap}
+    #top>div{padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-pill);background:var(--panel);box-shadow:0 1px 0 rgba(255,255,255,0.03) inset}
+    #rank{padding:2px 6px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--accent-2);font-size:12px}
+    #pattern{border-bottom:1px dotted var(--accent-2);cursor:help}
     #grid{position:relative;width:min(900px,95vw);height:min(480px,60vh);margin:56px auto 120px;overflow:hidden}
-    .enemy{position:absolute;border:1px solid #31364b;border-radius:10px;min-height:64px;display:grid;place-items:center;padding:6px 10px}
-    .enemy.lock{outline:2px solid #3BE3FF}
-    .enemy:focus{outline:2px solid #8cd1ff; outline-offset: 2px}
+    .enemy{position:absolute;border:1px solid var(--border);border-radius:10px;min-height:64px;display:grid;place-items:center;padding:6px 10px;background:var(--panel-2)}
+    .enemy.lock{outline:2px solid var(--accent); box-shadow:0 0 0 4px rgba(59,227,255,0.1)}
+    .enemy:focus{outline:2px solid var(--accent-2); outline-offset: 2px}
     #panel{position:fixed;left:0;right:0;bottom:12px;display:flex;gap:8px;justify-content:center;align-items:center;margin:0}
-    input{padding:8px 10px;font-size:18px;border-radius:8px;border:1px solid #31364b;min-width:220px}
-    button{padding:8px 12px;border-radius:10px;border:1px solid #31364b;background:#1a2038;color:#e8e8e8;cursor:pointer}
+    input{padding:10px 12px;font-size:18px;border-radius:10px;border:1px solid var(--border);min-width:280px;background:var(--panel);color:var(--text)}
+    button{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--btn-bg);color:var(--text);cursor:pointer;transition:transform var(--dur) var(--ease), background var(--dur) var(--ease)}
+    button:hover{transform:translateY(-1px);background:var(--btn-bg-active)}
+    #fire{background:linear-gradient(180deg, #2b325a, #1d2446)}
+    #fire::before{content:"🚀 ";}
+    /* pause overlay indicator */
+    body.paused #grid::after{content:"一時停止";position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,0.35);color:var(--accent-2);font-weight:700;letter-spacing:0.1em}
+
+    /* ===== Base Typography ===== */
+    h1,h2,h3{margin:0 0 var(--space); font-weight:700;}
+    h1{font-size:32px; letter-spacing:.02em}
+    h2{font-size:24px}
+    h3{font-size:18px}
+    p{margin:0 0 var(--space); line-height:1.6}
+    small{color:var(--muted)}
+    a{color:var(--accent-2); text-decoration:underline; text-underline-offset:2px}
+    a:hover{opacity:.9}
+
+    /* ===== Buttons ===== */
+    .btn{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius); background:var(--btn-bg); color:var(--text); cursor:pointer; transition:transform var(--dur) var(--ease), background var(--dur) var(--ease), box-shadow var(--dur) var(--ease)}
+    .btn:hover{transform:translateY(-1px); background:var(--btn-bg-active); box-shadow:var(--shadow-sm)}
+    .btn:active{transform:translateY(0)}
+    .btn--primary{background:linear-gradient(180deg, #2b335f, #1b234a); border-color:var(--border)}
+    .btn--secondary{background:var(--panel)}
+    .btn--danger{background:#3a1e28; border-color:#5a2737}
+    .btn--ghost{background:transparent}
+    .btn[disabled]{opacity:.6; cursor:not-allowed}
+
+    /* ===== Pills (HUD chips) ===== */
+    .pill{display:inline-block; padding:4px 10px; border:1px solid var(--border); border-radius:var(--radius-pill); background:var(--panel); box-shadow:0 1px 0 rgba(255,255,255,0.03) inset; font-size:14px}
+    .pill--ok{border-color:#235a46; background:#0f2d24; color:var(--ok)}
+    .pill--warn{border-color:#5a4b23; background:#2d250f; color:var(--warn)}
+    .pill--danger{border-color:#5a2737; background:#2d0f19; color:var(--danger)}
+
+    /* ===== Cards ===== */
+    .card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-md); padding:var(--space-lg)}
+    .card--muted{background:var(--panel-2)}
+
+    /* ===== Modal ===== */
+    .modal-overlay{position:fixed; inset:0; display:grid; place-items:center; background:rgba(0,0,0,0.6); z-index:var(--z-modal)}
+    .modal-panel{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); padding:var(--space-xl); color:var(--text); max-width:min(720px, 92vw)}
+
+    /* ===== Utilities ===== */
+    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+    .row{display:flex; gap:var(--space); align-items:center}
+    .col{display:flex; flex-direction:column; gap:var(--space)}
     </style>
   </head>
   <body>
