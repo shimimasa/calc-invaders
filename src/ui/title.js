@@ -1,5 +1,5 @@
 // src/ui/title.js
-import { loadState, setDifficulty, setSelectedSuits, setSelectedRanks, setQuestionCountMode } from '../core/gameState.js';
+import { loadState, setDifficulty, setSelectedSuits, setSelectedRanks, setQuestionCountMode, getRankProgress, getUnlockedCounts } from '../core/gameState.js';
 import { mountSettings } from './settings.js';
 
 const SUITS = ['heart','spade','club','diamond'];
@@ -137,7 +137,11 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
     const cur = loadState();
     const suit = activeSuit();
     const ranks = cur.selectedRanks || {};
-    const rank = (Array.from({length:13},(_,k)=>k+1).find(n => !!ranks[n])) || 1;
+    const prog = getRankProgress();
+    const maxRank = Number(prog?.[suit] || 0);
+    // 解放済みランク以内で最初に選ばれているもの、なければ1（ただし最小でも1）
+    const seq = Array.from({length:13},(_,k)=>k+1);
+    const rank = (seq.find(n => n <= Math.max(1, maxRank) && !!ranks[n])) || Math.max(1, Math.min(13, maxRank || 1));
     onStart?.({ suit, rank, difficulty: cur.difficulty || 'normal', countMode: cur.questionCountMode || '10' });
     rootEl.innerHTML = '';
   });
@@ -162,12 +166,42 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
   wrap.append(panel);
   rootEl.appendChild(wrap);
 
-  // 初回ツールチップ更新
+  // ゲームオーバーからの「ステージ選択」希望を処理
+  try {
+    if (window.__ciIntentOpenTower) {
+      window.__ciIntentOpenTower = undefined;
+      setTimeout(() => {
+        try { onOpenStageSelect?.(); } catch(_e){}
+      }, 0);
+    }
+  } catch(_e){}
+
+  // ロック反映とツールチップ更新
+  applyLocks();
   updateRankTooltips(activeSuit());
 
   function activeSuit(){
     const cur = loadState().selectedSuits || {};
     return SUITS.find(s => !!cur[s]) || 'heart';
+  }
+  function applyLocks(){
+    // ランクロック
+    const prog = getRankProgress();
+    const suit = activeSuit();
+    const maxRank = Number(prog?.[suit] || 0);
+    rankButtons.forEach((b, idx) => {
+      const r = idx + 1;
+      const locked = !(maxRank >= r);
+      b.disabled = locked;
+      if (locked) b.title = `未解放: ランク${maxRank}まで`;
+    });
+    // 問題数ロック
+    const unlocked = getUnlockedCounts();
+    ;[...countGroup.children].forEach((b) => {
+      const k = b.dataset.mode;
+      const locked = !unlocked.includes(k);
+      b.disabled = locked;
+    });
   }
   async function updateRankTooltips(suit){
     rankButtons.forEach((b)=> b.title = '読み込み中…');

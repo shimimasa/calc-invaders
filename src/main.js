@@ -1,7 +1,7 @@
 import { loadStage } from "./core/questionBank.js";
 import { spawnController } from "./core/spawnController.js";
 import { renderCardTower, markStageCleared } from "./ui/cardTower.js";
-import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas, setDifficulty, setSelectedSuits, setSelectedRanks, flipCard, recordCardAcquired } from "./core/gameState.js";
+import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas, setDifficulty, setSelectedSuits, setSelectedRanks, flipCard, recordCardAcquired, getUnlockedCounts, unlockNextCount, getRankProgress, unlockNextRank } from "./core/gameState.js";
 import { buildReviewStage } from "./core/reviewStage.js";
 import { mountMenu } from "./ui/menu.js";
 import { mountSettings } from "./ui/settings.js";
@@ -80,7 +80,10 @@ export async function start(stageId){
       // ステージJSONを取得
   const [baseId, query] = String(stageId).split('?');
   const qsParams = new URLSearchParams(query || '');
-  const countMode = qsParams.get('q') || (loadState().questionCountMode || '10');
+  // qパラメータ検証（解放済みの問題数にクランプ）
+  const rawQ = qsParams.get('q') || (loadState().questionCountMode || '10');
+  const unlocked = getUnlockedCounts();
+  const countMode = unlocked.includes(String(rawQ)) ? String(rawQ) : (unlocked[unlocked.length-1] || '5');
 
   const res = await fetch(`data/stages/${baseId}.json`);
   if (!res.ok) throw new Error(`stage not found: ${baseId}`);
@@ -131,7 +134,7 @@ export async function start(stageId){
     const curId = baseId;
     const goRetry = () => start(`${curId}?q=${countMode}`);
     const goSelect = () => {
-      // タイトルへ戻る→塔へ遷移するパターン（必要なら直接塔を表示）
+      try { window.__ciIntentOpenTower = true; } catch(_e){}
       start();
     };
     const goTitle = () => start();
@@ -143,7 +146,7 @@ export async function start(stageId){
       addScore(json.rules?.scorePerHit ?? 100);
       selectedEl && (selectedEl.textContent = "SELECTED: なし");
       setLiveStatus('Correct ✓');
-      if (!endless && grid.children.length === 0){
+      if (!endless && ctrl.isSpawningDone?.() === true && grid.children.length === 0){
         document.body.classList.remove('paused');
         // STAGE CLEAR
         const totalScore = Number(scoreEl?.textContent || '0') || score;
@@ -172,6 +175,16 @@ export async function start(stageId){
         const goTitle = () => start();
         const goCollection = () => showCollection({ onClose: () => {} });
         showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle, onCollection: goCollection, earned });
+
+        // 段階解放の進行
+        try {
+          const [suit, rstr] = curId.split('_');
+          const rankNum = Number(rstr);
+          // ランク進行
+          unlockNextRank(suit, rankNum);
+          // 問題数進行
+          unlockNextCount(countMode);
+        } catch(_e){}
       }
     }
   

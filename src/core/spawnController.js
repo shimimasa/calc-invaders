@@ -115,7 +115,6 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
       b.remove();
       state.lockEl = null;
       onCorrect && onCorrect();
-      if (!endless && rootEl.children.length === 0) stopDescend();
       return true;
     } else {
       const ent = state.entities.find(e => e.el === b);
@@ -137,6 +136,9 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     getSelected: () => state.lockEl,
     pause: () => { state.paused = true; },
     resume: () => { state.paused = false; },
-    stop: () => { if (state.rafId) cancelAnimationFrame(state.rafId); state.rafId = null; }
+    stop: () => { if (state.rafId) cancelAnimationFrame(state.rafId); state.rafId = null; },
+    // 追加: 残スポーン/盤面情報
+    isSpawningDone: () => !wantMoreSpawns(),
+    getActiveCount: () => state.entities.length
   };
 }

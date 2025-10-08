@@ -1,4 +1,4 @@
-import { loadState, flipCard, unlockSuit, setLastStageId } from "../core/gameState.js";
+import { loadState, flipCard, unlockSuit, setLastStageId, getRankProgress } from "../core/gameState.js";
 
 const SUITS = ["heart", "spade", "club", "diamond"];
 const SUIT_LABEL = { heart: '♡', spade: '♠', club: '♣', diamond: '♦' };
@@ -6,6 +6,7 @@ const SUIT_LABEL = { heart: '♡', spade: '♠', club: '♣', diamond: '♦' };
 export function renderCardTower({ rootEl, onSelectStage, onClose }){
   if (!rootEl) return;
   const state = loadState();
+  const progress = getRankProgress();
   rootEl.innerHTML = "";
 
   // overlay
@@ -71,6 +72,8 @@ export function renderCardTower({ rootEl, onSelectStage, onClose }){
       btn.setAttribute("tabindex", "0");
 
       const isUnlocked = state.unlockedSuits?.[suit] === true;
+      const maxRank = Number(progress?.[suit] || 0);
+      const rankLocked = !(maxRank >= rank);
       const isFlipped = (state.flippedCards || []).includes(id);
       const owned = isFlipped === true;
       btn.dataset.suit = suit;
@@ -79,15 +82,19 @@ export function renderCardTower({ rootEl, onSelectStage, onClose }){
       Object.assign(btn.style, {
         height:'112px', display:'grid', placeItems:'center', fontSize:'24px',
         borderRadius:'12px', border:'1px solid var(--border)', boxShadow:'var(--shadow-sm)',
-        background: owned ? '#2a355f' : (isUnlocked ? 'var(--panel)' : '#0f1224'),
-        color: isUnlocked ? (owned ? 'var(--accent-2)' : 'var(--text)') : '#666b86',
-        cursor: isUnlocked ? 'pointer' : 'not-allowed'
+        background: owned ? '#2a355f' : (isUnlocked && !rankLocked ? 'var(--panel)' : '#0f1224'),
+        color: (isUnlocked && !rankLocked) ? (owned ? 'var(--accent-2)' : 'var(--text)') : '#666b86',
+        cursor: (isUnlocked && !rankLocked) ? 'pointer' : 'not-allowed'
       });
-      if (!isUnlocked){ btn.style.filter = 'grayscale(0.4)'; }
+      if (!isUnlocked || rankLocked){ btn.style.filter = 'grayscale(0.4)'; }
+      if (rankLocked && isUnlocked){ btn.title = `未解放: ランク${maxRank}まで`; }
 
       btn.addEventListener("click", () => {
         const st = loadState();
         if (st.unlockedSuits?.[suit] !== true) return;
+        const prog = getRankProgress();
+        const mr = Number(prog?.[suit] || 0);
+        if (!(mr >= rank)) return;
         setLastStageId(id);
         wrap.remove();
         if (typeof onSelectStage === 'function') onSelectStage(id);

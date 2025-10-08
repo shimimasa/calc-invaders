@@ -1,7 +1,7 @@
 // GameState persistence utilities (localStorage)
 
 export const STORAGE_KEY = "ci:v1";
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 export function getDefaultState(){
   return {
@@ -19,7 +19,10 @@ export function getDefaultState(){
     difficulty: 'normal',
     selectedSuits: { heart: true, spade: false, club: false, diamond: false },
     selectedRanks: { 1:true, 2:false, 3:false, 4:false, 5:false, 6:false, 7:false, 8:false, 9:false, 10:false, 11:false, 12:false, 13:false },
-    questionCountMode: '10' // '5' | '10' | '20' | '30' | 'endless'
+    questionCountMode: '10', // '5' | '10' | '20' | '30' | 'endless'
+    // 段階解放
+    rankProgress: { heart: 1, spade: 0, club: 0, diamond: 0 },
+    unlockedCounts: ['5']
   };
 }
 
@@ -70,8 +73,28 @@ function normalizeState(input){
   const ranks = {}; for (let i=1;i<=13;i++) ranks[i] = !!rsel[i];
   if (!Object.values(ranks).some(Boolean)) ranks[1] = true;
   out.selectedRanks = ranks;
+  // 段階解放（問題数）
+  const CM_ORDER = ['5','10','20','30','endless'];
+  const rawCounts = Array.isArray(input.unlockedCounts) ? input.unlockedCounts.filter(v => CM_ORDER.includes(String(v))) : base.unlockedCounts;
+  const uniqCounts = Array.from(new Set(rawCounts));
+  out.unlockedCounts = uniqCounts.length > 0 ? uniqCounts : base.unlockedCounts;
+  // 現在の問題数は解放済みの中からのみ
   const qcm = String(input.questionCountMode || base.questionCountMode);
-  out.questionCountMode = ['5','10','20','30','endless'].includes(qcm) ? qcm : base.questionCountMode;
+  const lastUnlocked = out.unlockedCounts[out.unlockedCounts.length - 1] || base.questionCountMode;
+  out.questionCountMode = out.unlockedCounts.includes(qcm) ? qcm : lastUnlocked;
+  // 段階解放（ランク）
+  const rp = input.rankProgress && typeof input.rankProgress === 'object' ? input.rankProgress : base.rankProgress;
+  const clampRank = (n) => {
+    const v = Number(n);
+    return Number.isFinite(v) ? Math.max(0, Math.min(13, v)) : 0;
+  };
+  out.rankProgress = {
+    heart: clampRank(rp.heart),
+    spade: clampRank(rp.spade),
+    club: clampRank(rp.club),
+    diamond: clampRank(rp.diamond)
+  };
+  if (out.rankProgress.heart < 1) out.rankProgress.heart = 1;
   // version stamp
   out.schemaVersion = Number.isFinite(input.schemaVersion) ? input.schemaVersion : SCHEMA_VERSION;
   return out;
@@ -91,7 +114,13 @@ function migrateState(raw){
       if (typeof cur.questionCountMode === 'undefined') cur.questionCountMode = '10';
       cur.schemaVersion = 2;
     }
-    // future migrations: if (cur.schemaVersion < 3) { ...; cur.schemaVersion = 3; }
+    if (cur.schemaVersion < 3){
+      // v3 introduces: rankProgress, unlockedCounts
+      if (!cur.rankProgress || typeof cur.rankProgress !== 'object') cur.rankProgress = { heart: 1, spade: 0, club: 0, diamond: 0 };
+      if (!Array.isArray(cur.unlockedCounts)) cur.unlockedCounts = ['5'];
+      cur.schemaVersion = 3;
+    }
+    // future migrations: if (cur.schemaVersion < 4) { ...; cur.schemaVersion = 4; }
     return cur;
   } catch (_e) {
     return getDefaultState();
@@ -225,7 +254,10 @@ export function setSelectedRanks(sel){
 // 追加: 問題数モード
 export function setQuestionCountMode(mode){
   const m = String(mode || '10');
-  const ok = ['5','10','20','30','endless'].includes(m) ? m : '10';
+  const current = loadState();
+  const allowed = Array.isArray(current.unlockedCounts) ? current.unlockedCounts : ['5'];
+  const fallback = allowed[allowed.length - 1] || '5';
+  const ok = allowed.includes(m) ? m : fallback;
   return updateState({ questionCountMode: ok });
 }
 
@@ -247,4 +279,43 @@ export function setA11ySettings(settings){
     highContrast: typeof a.highContrast === 'boolean' ? a.highContrast : current.a11ySettings.highContrast
   };
   return updateState({ a11ySettings: next });
+}
+
+// ---- 段階解放ユーティリティ ----
+export function getRankProgress(){
+  const current = loadState();
+  return { ...(current.rankProgress || {}) };
+}
+
+export function unlockNextRank(suit, clearedRank){
+  const s = String(suit || '');
+  const r = Number(clearedRank);
+  if (!['heart','spade','club','diamond'].includes(s)) return loadState();
+  if (!Number.isFinite(r)) return loadState();
+  const current = loadState();
+  const rp = { ...(current.rankProgress || {}) };
+  const cur = Number(rp[s] || 0);
+  const next = Math.max(cur, Math.min(13, r + 1));
+  if (next !== cur){ rp[s] = next; return updateState({ rankProgress: rp }); }
+  return current;
+}
+
+const COUNT_ORDER = ['5','10','20','30','endless'];
+function sortCounts(arr){
+  return Array.from(new Set(arr)).filter(v => COUNT_ORDER.includes(v)).sort((a,b)=> COUNT_ORDER.indexOf(a)-COUNT_ORDER.indexOf(b));
+}
+
+export function getUnlockedCounts(){
+  const current = loadState();
+  return sortCounts(current.unlockedCounts || ['5']);
+}
+
+export function unlockNextCount(currentMode){
+  const cur = String(currentMode || '5');
+  const idx = COUNT_ORDER.indexOf(cur);
+  if (idx < 0) return loadState();
+  const next = COUNT_ORDER[Math.min(COUNT_ORDER.length-1, idx+1)];
+  const st = loadState();
+  const list = sortCounts([...(st.unlockedCounts || ['5']), cur, next]);
+  return updateState({ unlockedCounts: list });
 }

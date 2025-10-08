@@ -53,6 +53,8 @@ export function showStageClear({ stageId, score, onRetry, onNext, onTitle, onCol
   panel.append(h, s, reveal, row);
   wrap.append(panel);
   document.body.appendChild(wrap);
+  // 初期フォーカス
+  try { btnNext.focus(); } catch(_e){}
 
   function cleanup(){
     wrap.remove();
@@ -92,6 +94,8 @@ export function showGameOver({ stageId, score, onRetry, onStageSelect, onTitle }
   panel.append(h, s, hint, row);
   wrap.append(panel);
   document.body.appendChild(wrap);
+  // 初期フォーカス
+  try { btnRetry.focus(); } catch(_e){}
 
   function cleanup(){
     wrap.remove();
