@@ -8,6 +8,7 @@ export function getDefaultState(){
     score: 0,
     lives: 3,
     flippedCards: [],
+    cardMeta: {},
     incorrectFormulas: [],
     audioSettings: { bgm: true, se: true, volume: 1 },
     unlockedSuits: { heart: true, spade: false, club: false, diamond: false },
@@ -24,6 +25,8 @@ function normalizeState(input){
   const out = { ...base, ...input };
   // arrays
   out.flippedCards = Array.isArray(input.flippedCards) ? input.flippedCards.slice() : base.flippedCards;
+  // maps
+  out.cardMeta = (input.cardMeta && typeof input.cardMeta === 'object') ? { ...input.cardMeta } : {};
   out.incorrectFormulas = Array.isArray(input.incorrectFormulas) ? input.incorrectFormulas.slice() : base.incorrectFormulas;
   // audio settings
   const a = input.audioSettings || {};
@@ -115,6 +118,30 @@ export function flipCard(cardId){
   const set = new Set(current.flippedCards || []);
   if (cardId != null) set.add(String(cardId));
   return updateState({ flippedCards: Array.from(set) });
+}
+
+// 記録: カード取得メタ（初取得日時、ベストスコア、クリア回数）
+export function recordCardAcquired(stageId, { score } = {}){
+  const current = loadState();
+  const id = String(stageId || '');
+  const meta = { ...(current.cardMeta || {}) };
+  const nowIso = new Date().toISOString();
+  const prev = meta[id] || {};
+  const clears = (prev.clears || 0) + 1;
+  const bestScore = Math.max(Number(prev.bestScore||0), Number(score||0));
+  meta[id] = {
+    obtainedAt: prev.obtainedAt || nowIso,
+    lastClearedAt: nowIso,
+    clears,
+    bestScore
+  };
+  return updateState({ cardMeta: meta });
+}
+
+export function getAllCardMeta(){
+  const current = loadState();
+  const m = current.cardMeta || {};
+  return { ...m };
 }
 
 export function setLastStageId(id){

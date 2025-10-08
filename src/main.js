@@ -1,7 +1,7 @@
 import { loadStage } from "./core/questionBank.js";
 import { spawnController } from "./core/spawnController.js";
 import { renderCardTower, markStageCleared } from "./ui/cardTower.js";
-import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas, setDifficulty, setSelectedSuits, setSelectedRanks, flipCard } from "./core/gameState.js";
+import { loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas, setDifficulty, setSelectedSuits, setSelectedRanks, flipCard, recordCardAcquired } from "./core/gameState.js";
 import { buildReviewStage } from "./core/reviewStage.js";
 import { mountMenu } from "./ui/menu.js";
 import { mountSettings } from "./ui/settings.js";
@@ -20,6 +20,9 @@ export async function start(stageId){
     try { startBgm('bgm_title'); } catch(_e){}
     const onceUnlockTitle = () => { try { unlockAudio(); startBgm('bgm_title'); } catch(_e){} document.removeEventListener('pointerup', onceUnlockTitle); };
     document.addEventListener('pointerup', onceUnlockTitle, { once: true });
+    // コレクション「このステージで遊ぶ」対応
+    const onPlay = (e) => { const id = e?.detail?.stageId; if (id) { window.removeEventListener('ci:playStage', onPlay); start(`${id}?q=${(loadState().questionCountMode||'10')}`); } };
+    window.addEventListener('ci:playStage', onPlay, { once: true });
     // タイトルUI
     const root = document.getElementById('title');
     mountTitle({
@@ -133,6 +136,7 @@ export async function start(stageId){
           const after = new Set((loadState().flippedCards)||[]);
           earned = (!before.has(curId) && after.has(curId));
         } catch {}
+        try { recordCardAcquired(curId, { score: totalScore }); } catch {}
         stopBgm('bgm_stage');
         playSfx('clear');
   
