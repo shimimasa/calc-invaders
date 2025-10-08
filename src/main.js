@@ -73,10 +73,14 @@ export async function start(stageId){
   const remainBar = document.getElementById('remain-bar');
   const timeBar = document.getElementById('time-bar');
 
-  let combo = 0;
-  let lives = Number(lifeEl?.textContent || '3') || 3;
-  let score = Number(scoreEl?.textContent || '0') || 0;
+ // 既存
+let combo = 0;
+let lives = Number(lifeEl?.textContent || '3') || 3;
+let score = Number(scoreEl?.textContent || '0') || 0;
+let cleared = 0; // 正解累計（クリア判定はこれで行う）
 
+  
+      
       // ステージJSONを取得
   const [baseId, query] = String(stageId).split('?');
   const qsParams = new URLSearchParams(query || '');
@@ -146,52 +150,55 @@ export async function start(stageId){
     showGameOver({ stageId: curId, score: totalScore, onRetry: goRetry, onStageSelect: goSelect, onTitle: goTitle });
   }
   
-    function onCorrect(){
-      combo += 1;
-      addScore(json.rules?.scorePerHit ?? 100);
-      selectedEl && (selectedEl.textContent = "SELECTED: なし");
-      setLiveStatus('Correct ✓');
-      if (!endless && ctrl.isSpawningDone?.() === true && grid.children.length === 0){
-        document.body.classList.remove('paused');
-        // STAGE CLEAR
-        const totalScore = Number(scoreEl?.textContent || '0') || score;
-        const curId = baseId;
-        let earned = false;
-        try {
-          const before = new Set((loadState().flippedCards)||[]);
-          flipCard(curId);
-          const after = new Set((loadState().flippedCards)||[]);
-          earned = (!before.has(curId) && after.has(curId));
-        } catch {}
-        try { recordCardAcquired(curId, { score: totalScore }); } catch {}
-        stopBgm('bgm_stage');
-        playSfx('clear');
+  function onCorrect(){
+    combo += 1;
+    addScore(json.rules?.scorePerHit ?? 100);
+    selectedEl && (selectedEl.textContent = "SELECTED: なし");
+    setLiveStatus('Correct ✓');
   
-        const goRetry = () => start(`${curId}?q=${countMode}`);
-        const goNext = () => {
-          const [suit, rstr] = curId.split('_');
-          const r = Number(rstr);
-          const ranks = loadState().selectedRanks || {};
-          const sequence = Array.from({length:13},(_,k)=>k+1);
-          const after = sequence.slice(r).concat(sequence.slice(0, r));
-          const nextRank = (after.find(n => !!ranks[n])) || ((r % 13) + 1);
-          start(`${suit}_${String(nextRank).padStart(2,'0')}?q=${countMode}`);
-        };
-        const goTitle = () => start();
-        const goCollection = () => showCollection({ onClose: () => {} });
-        showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle, onCollection: goCollection, earned });
-
-        // 段階解放の進行
-        try {
-          const [suit, rstr] = curId.split('_');
-          const rankNum = Number(rstr);
-          // ランク進行
-          unlockNextRank(suit, rankNum);
-          // 問題数進行
-          unlockNextCount(countMode);
-        } catch(_e){}
-      }
+    // 正解累計を増加
+    cleared += 1;
+  
+    // クリア判定: 問題数モードでは「正解数が目標数に到達」で確定
+    if (!endless && cleared >= totalCount){
+      document.body.classList.remove('paused');
+      // STAGE CLEAR
+      const totalScore = Number(scoreEl?.textContent || '0') || score;
+      const curId = baseId;
+      let earned = false;
+      try {
+        const before = new Set((loadState().flippedCards)||[]);
+        flipCard(curId);
+        const after = new Set((loadState().flippedCards)||[]);
+        earned = (!before.has(curId) && after.has(curId));
+      } catch {}
+      try { recordCardAcquired(curId, { score: totalScore }); } catch {}
+      stopBgm('bgm_stage');
+      playSfx('clear');
+  
+      const goRetry = () => start(`${curId}?q=${countMode}`);
+      const goNext = () => {
+        const [suit, rstr] = curId.split('_');
+        const r = Number(rstr);
+        const ranks = loadState().selectedRanks || {};
+        const sequence = Array.from({length:13},(_,k)=>k+1);
+        const after = sequence.slice(r).concat(sequence.slice(0, r));
+        const nextRank = (after.find(n => !!ranks[n])) || ((r % 13) + 1);
+        start(`${suit}_${String(nextRank).padStart(2,'0')}?q=${countMode}`);
+      };
+      const goTitle = () => start();
+      const goCollection = () => showCollection({ onClose: () => {} });
+      showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle, onCollection: goCollection, earned });
+  
+      // 段階解放
+      try {
+        const [suit, rstr] = curId.split('_');
+        const rankNum = Number(rstr);
+        unlockNextRank(suit, rankNum);
+        unlockNextCount(countMode);
+      } catch(_e){}
     }
+  }
   
     function onWrong(){
       combo = 0;
