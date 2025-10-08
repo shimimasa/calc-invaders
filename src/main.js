@@ -158,8 +158,10 @@ let cleared = 0; // 正解累計（クリア判定はこれで行う）
   
     // 追加: 正解数でクリア判定
     cleared += 1;
+  
     if (!endless && cleared >= totalCount){
       document.body.classList.remove('paused');
+      // STAGE CLEAR
       const totalScore = Number(scoreEl?.textContent || '0') || score;
       const curId = baseId;
       let earned = false;
@@ -187,6 +189,7 @@ let cleared = 0; // 正解累計（クリア判定はこれで行う）
       const goCollection = () => showCollection({ onClose: () => {} });
       showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle, onCollection: goCollection, earned });
   
+      // 段階解放の進行
       try {
         const [suit, rstr] = curId.split('_');
         const rankNum = Number(rstr);
