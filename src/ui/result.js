@@ -58,32 +58,29 @@ export function showStageClear({ stageId, score, onRetry, onNext, onTitle, onCol
 
 export function showGameOver({ stageId, score, onRetry, onStageSelect, onTitle }){
   const wrap = document.createElement('div');
-  Object.assign(wrap.style, {
-    position:'fixed', inset:'0', display:'grid', placeItems:'center', background:'rgba(0,0,0,0.6)', zIndex:'1000'
-  });
+  wrap.className = 'modal-overlay';
   const panel = document.createElement('div');
-  Object.assign(panel.style, {
-    background:'#14182c', border:'1px solid #31364b', borderRadius:'12px', padding:'16px 20px', minWidth:'min(460px,92vw)', color:'#e8e8e8'
-  });
-  const h = document.createElement('h3'); h.textContent = 'GAME OVER';
+  panel.className = 'modal-panel card';
+  panel.style.minWidth = 'min(560px, 92vw)';
+  // calm color accent
+  panel.style.background = 'linear-gradient(180deg, #12162a, #0f1424)';
+
+  const h = document.createElement('h2'); h.textContent = 'GAME OVER';
   const s = document.createElement('div'); s.textContent = `Stage: ${stageId}  |  Score: ${score}`;
+  const hint = document.createElement('small'); hint.textContent = 'ヒント: 焦らず1問ずつ、選択後に答えを落ち着いて入力しよう。';
 
-  const row = document.createElement('div'); Object.assign(row.style, { display:'flex', gap:'8px', marginTop:'12px', justifyContent:'center', flexWrap:'wrap' });
+  const row = document.createElement('div'); row.className = 'row'; row.style.justifyContent = 'center'; row.style.flexWrap = 'wrap'; row.style.marginTop = '16px'; row.style.gap = '10px';
 
-  const btnRetry = document.createElement('button'); btnRetry.textContent = 'もう一度';
-  const btnSelect= document.createElement('button'); btnSelect.textContent= 'ステージ選択';
-  const btnTitle = document.createElement('button'); btnTitle.textContent = 'タイトルへ';
-
-  ;[btnRetry, btnSelect, btnTitle].forEach(b => {
-    Object.assign(b.style, { padding:'8px 12px', borderRadius:'8px', border:'1px solid #31364b', background:'#1a2038', color:'#e8e8e8', cursor:'pointer' });
-  });
+  const btnRetry = document.createElement('button'); btnRetry.textContent = 'もう一度'; btnRetry.className = 'btn btn--primary';
+  const btnSelect= document.createElement('button'); btnSelect.textContent= 'ステージ選択'; btnSelect.className = 'btn';
+  const btnTitle = document.createElement('button'); btnTitle.textContent = 'タイトルへ'; btnTitle.className = 'btn';
 
   btnRetry.addEventListener('click', () => { cleanup(); onRetry?.(); });
   btnSelect.addEventListener('click', () => { cleanup(); onStageSelect?.(); });
   btnTitle.addEventListener('click', () => { cleanup(); onTitle?.(); });
 
   row.append(btnRetry, btnSelect, btnTitle);
-  panel.append(h, s, row);
+  panel.append(h, s, hint, row);
   wrap.append(panel);
   document.body.appendChild(wrap);
 
