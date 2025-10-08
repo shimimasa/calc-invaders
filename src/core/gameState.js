@@ -11,6 +11,8 @@ export function getDefaultState(){
     cardMeta: {},
     incorrectFormulas: [],
     audioSettings: { bgm: true, se: true, volume: 1 },
+    gameSettings: { timeLimitEnabled: false, timeLimitSec: 60 },
+    a11ySettings: { largeButtons: false, highContrast: false },
     unlockedSuits: { heart: true, spade: false, club: false, diamond: false },
     difficulty: 'normal',
     selectedSuits: { heart: true, spade: false, club: false, diamond: false },
@@ -27,6 +29,16 @@ function normalizeState(input){
   out.flippedCards = Array.isArray(input.flippedCards) ? input.flippedCards.slice() : base.flippedCards;
   // maps
   out.cardMeta = (input.cardMeta && typeof input.cardMeta === 'object') ? { ...input.cardMeta } : {};
+  const gs = input.gameSettings || {};
+  out.gameSettings = {
+    timeLimitEnabled: typeof gs.timeLimitEnabled === 'boolean' ? gs.timeLimitEnabled : base.gameSettings.timeLimitEnabled,
+    timeLimitSec: Number.isFinite(gs.timeLimitSec) ? Math.max(10, Math.min(600, gs.timeLimitSec)) : base.gameSettings.timeLimitSec
+  };
+  const ax = input.a11ySettings || {};
+  out.a11ySettings = {
+    largeButtons: typeof ax.largeButtons === 'boolean' ? ax.largeButtons : base.a11ySettings.largeButtons,
+    highContrast: typeof ax.highContrast === 'boolean' ? ax.highContrast : base.a11ySettings.highContrast
+  };
   out.incorrectFormulas = Array.isArray(input.incorrectFormulas) ? input.incorrectFormulas.slice() : base.incorrectFormulas;
   // audio settings
   const a = input.audioSettings || {};
@@ -187,4 +199,24 @@ export function setQuestionCountMode(mode){
   const m = String(mode || '10');
   const ok = ['5','10','20','30','endless'].includes(m) ? m : '10';
   return updateState({ questionCountMode: ok });
+}
+
+export function setGameSettings(settings){
+  const current = loadState();
+  const g = settings || {};
+  const next = {
+    timeLimitEnabled: typeof g.timeLimitEnabled === 'boolean' ? g.timeLimitEnabled : current.gameSettings.timeLimitEnabled,
+    timeLimitSec: Number.isFinite(g.timeLimitSec) ? Math.max(10, Math.min(600, g.timeLimitSec)) : current.gameSettings.timeLimitSec
+  };
+  return updateState({ gameSettings: next });
+}
+
+export function setA11ySettings(settings){
+  const current = loadState();
+  const a = settings || {};
+  const next = {
+    largeButtons: typeof a.largeButtons === 'boolean' ? a.largeButtons : current.a11ySettings.largeButtons,
+    highContrast: typeof a.highContrast === 'boolean' ? a.highContrast : current.a11ySettings.highContrast
+  };
+  return updateState({ a11ySettings: next });
 }
