@@ -10,7 +10,7 @@ import { unlockAudio, playSfx, startBgm, stopBgm } from "./audio/index.js";
 import { ensureLiveRegion } from "./utils/accessibility.js";
 import { mountTitle } from "./ui/title.js";
 import { shootProjectile, showHitEffect, showMissEffect } from "./ui/effects.js";
-import { showStageClear } from "./ui/result.js";
+import { showStageClear, showGameOver } from "./ui/result.js";
 import { showCollection } from "./ui/collection.js";
 
 export async function start(stageId){
@@ -89,13 +89,22 @@ export async function start(stageId){
       if (scoreEl) scoreEl.textContent = String(score);
     }
   
-    function gameOver(){
-      const msg = document.getElementById('message');
-      if (msg) msg.textContent = 'GAME OVER';
-      playSfx('gameover');
-      stopBgm('bgm_stage');
-      updateState({ lives: 0, score });
-    }
+  function gameOver(){
+    const msg = document.getElementById('message');
+    if (msg) msg.textContent = 'GAME OVER';
+    playSfx('gameover');
+    stopBgm('bgm_stage');
+    updateState({ lives: 0, score });
+    const totalScore = Number(scoreEl?.textContent || '0') || score;
+    const curId = baseId;
+    const goRetry = () => start(`${curId}?q=${countMode}`);
+    const goSelect = () => {
+      // タイトルへ戻る→塔へ遷移するパターン（必要なら直接塔を表示）
+      start();
+    };
+    const goTitle = () => start();
+    showGameOver({ stageId: curId, score: totalScore, onRetry: goRetry, onStageSelect: goSelect, onTitle: goTitle });
+  }
   
     function onCorrect(){
       combo += 1;
