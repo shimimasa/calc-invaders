@@ -13,25 +13,18 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
 
   const wrap = document.createElement('div');
   wrap.id = 'title-wrap';
-  wrap.style.position = 'fixed';
-  wrap.style.inset = '0';
-  wrap.style.display = 'grid';
-  wrap.style.placeItems = 'center';
-  wrap.style.background = 'rgba(0,0,0,0.6)';
-  wrap.style.zIndex = '1000';
+  wrap.className = 'modal-overlay';
 
   const panel = document.createElement('div');
-  panel.style.background = '#14182c';
-  panel.style.border = '1px solid #31364b';
-  panel.style.borderRadius = '12px';
-  panel.style.padding = '16px 20px';
-  panel.style.minWidth = 'min(760px, 92vw)';
-  panel.style.color = '#e8e8e8';
-  panel.style.boxShadow = '0 8px 24px rgba(0,0,0,0.45)';
+  panel.className = 'modal-panel';
+  panel.style.minWidth = 'min(820px, 92vw)';
 
   const h1 = document.createElement('h2');
   h1.textContent = '計算インベーダー';
   h1.style.marginTop = '0';
+  const sub = document.createElement('p');
+  sub.textContent = '四則×トランプで楽しく練習。スーツ/ランク/問題数を選んでスタート！';
+  sub.style.marginTop = '0';
 
   // legend
   const legend = document.createElement('div');
@@ -41,13 +34,15 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
 
   // difficulty
   const diffBox = document.createElement('div');
-  diffBox.style.display = 'flex'; diffBox.style.gap = '12px'; diffBox.style.alignItems = 'center';
+  diffBox.className = 'row';
   const diffLabel = document.createElement('div'); diffLabel.textContent = '難易度（スピード）';
   const levels = ['easy','normal','hard'];
   const diffGroup = document.createElement('div');
+  diffGroup.className = 'row';
   levels.forEach(lv => {
     const btn = document.createElement('button');
     btn.textContent = lv.toUpperCase();
+    btn.className = 'btn';
     btn.dataset.level = lv;
     styleToggle(btn, lv === st.difficulty);
     btn.addEventListener('click', () => {
@@ -56,17 +51,17 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
     });
     diffGroup.appendChild(btn);
   });
-  diffGroup.style.display = 'flex'; diffGroup.style.gap = '8px';
   diffBox.append(diffLabel, diffGroup);
 
   // suits
   const suitBox = document.createElement('div');
-  suitBox.style.display = 'flex'; suitBox.style.gap = '12px'; suitBox.style.alignItems = 'center'; suitBox.style.marginTop = '8px';
+  suitBox.className = 'row'; suitBox.style.marginTop = '8px';
   const suitLabel = document.createElement('div'); suitLabel.textContent = 'スーツ（出題範囲）';
-  const suitGroup = document.createElement('div'); suitGroup.style.display = 'flex'; suitGroup.style.gap = '8px';
+  const suitGroup = document.createElement('div'); suitGroup.className = 'row';
   SUITS.forEach(s => {
     const btn = document.createElement('button');
     btn.textContent = `${SUIT_LABEL[s]} ${s}（${SUIT_OP[s]}）`;
+    btn.className = 'btn';
     btn.dataset.suit = s;
     styleToggle(btn, !!st.selectedSuits?.[s]);
     btn.addEventListener('click', () => {
@@ -83,13 +78,14 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
 
   // ranks 1..13 + tooltip(pattern)
   const rankBox = document.createElement('div');
-  rankBox.style.display = 'flex'; rankBox.style.flexDirection = 'column'; rankBox.style.gap = '6px'; rankBox.style.marginTop = '8px';
+  rankBox.className = 'col'; rankBox.style.marginTop = '8px';
   const rankLabel = document.createElement('div'); rankLabel.textContent = 'ランク（1〜13）';
   const rankGroup = document.createElement('div'); rankGroup.style.display = 'grid'; rankGroup.style.gridTemplateColumns = 'repeat(13, 1fr)'; rankGroup.style.gap = '4px';
   const rankButtons = [];
   for (let i=1;i<=13;i++){
     const btn = document.createElement('button');
     btn.textContent = String(i);
+    btn.className = 'btn';
     btn.dataset.rank = String(i);
     btn.title = ''; // pattern will be injected
     styleToggle(btn, !!st.selectedRanks?.[i]);
@@ -107,9 +103,9 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
 
   // 問題数モード
   const countBox = document.createElement('div');
-  countBox.style.display = 'flex'; countBox.style.gap = '12px'; countBox.style.alignItems = 'center'; countBox.style.marginTop = '8px';
+  countBox.className = 'row'; countBox.style.marginTop = '8px';
   const countLabel = document.createElement('div'); countLabel.textContent = '問題数';
-  const countGroup = document.createElement('div'); countGroup.style.display = 'flex'; countGroup.style.gap = '8px';
+  const countGroup = document.createElement('div'); countGroup.className = 'row';
   const modes = [
     { key: '5', label: '5問（ウォームアップ）' },
     { key: '10', label: '10問（標準）' },
@@ -120,6 +116,7 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
   modes.forEach(m => {
     const btn = document.createElement('button');
     btn.textContent = m.label;
+    btn.className = 'btn';
     btn.dataset.mode = m.key;
     styleToggle(btn, (st.questionCountMode || '10') === m.key);
     btn.addEventListener('click', () => {
@@ -131,10 +128,11 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
   countBox.append(countLabel, countGroup);
 
   const btns = document.createElement('div');
-  btns.style.display = 'flex'; btns.style.gap = '8px'; btns.style.marginTop = '16px'; btns.style.flexWrap = 'wrap';
+  btns.className = 'row'; btns.style.marginTop = '16px';
 
   const start = document.createElement('button');
   start.textContent = 'スタート';
+  start.className = 'btn btn--primary';
   start.addEventListener('click', () => {
     const cur = loadState();
     const suit = activeSuit();
@@ -146,28 +144,21 @@ export function mountTitle({ rootEl, onStart, onOpenStageSelect }){
 
   const select = document.createElement('button');
   select.textContent = 'ステージ選択（52枚）';
+  select.className = 'btn';
   select.addEventListener('click', () => {
     onOpenStageSelect?.();
   });
 
   const btnSettings = document.createElement('button');
   btnSettings.textContent = '設定';
+  btnSettings.className = 'btn';
   btnSettings.addEventListener('click', () => {
     openSettingsOverlay();
   });
 
-  [start, select, btnSettings].forEach(b => {
-    b.style.padding = '8px 12px';
-    b.style.borderRadius = '8px';
-    b.style.border = '1px solid #31364b';
-    b.style.background = '#1a2038';
-    b.style.color = '#e8e8e8';
-    b.style.cursor = 'pointer';
-  });
-
   btns.append(start, select, btnSettings);
 
-  panel.append(h1, legend, diffBox, suitBox, rankBox, countBox, btns);
+  panel.append(h1, sub, legend, diffBox, suitBox, rankBox, countBox, btns);
   wrap.append(panel);
   rootEl.appendChild(wrap);
 
