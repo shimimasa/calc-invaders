@@ -100,6 +100,14 @@ let cleared = 0; // 正解累計（クリア判定はこれで行う）
   const questions = endless ? questionsAll : questionsAll.slice(0, targetCount);
   const totalCount = questions.length;
 
+  // 追加:
+const session = { target: totalCount, cleared: 0, ended: false };
+const remainElInit = document.getElementById('remain');
+if (remainElInit && !endless) {
+  remainElInit.textContent = String(session.target);
+  if (remainBar) remainBar.style.width = '100%';
+}
+
   // 難易度（スピードのみ）適用
   const diff = (loadState().difficulty || 'normal');
   const speedMap = {
@@ -150,52 +158,61 @@ let cleared = 0; // 正解累計（クリア判定はこれで行う）
     showGameOver({ stageId: curId, score: totalScore, onRetry: goRetry, onStageSelect: goSelect, onTitle: goTitle });
   }
   
+  function stageClear(){
+    if (session.ended) return;
+    session.ended = true;
+    document.body.classList.remove('paused');
+    const totalScore = Number(scoreEl?.textContent || '0') || score;
+    const curId = baseId;
+  
+    let earned = false;
+    try {
+      const before = new Set((loadState().flippedCards)||[]);
+      flipCard(curId);
+      const after = new Set((loadState().flippedCards)||[]);
+      earned = (!before.has(curId) && after.has(curId));
+    } catch {}
+  
+    try { recordCardAcquired(curId, { score: totalScore }); } catch {}
+    stopBgm('bgm_stage');
+    playSfx('clear');
+  
+    const goRetry = () => start(`${curId}?q=${countMode}`);
+    const goNext = () => {
+      const [suit, rstr] = curId.split('_');
+      const r = Number(rstr);
+      const ranks = loadState().selectedRanks || {};
+      const sequence = Array.from({length:13},(_,k)=>k+1);
+      const after = sequence.slice(r).concat(sequence.slice(0, r));
+      const nextRank = (after.find(n => !!ranks[n])) || ((r % 13) + 1);
+      start(`${suit}_${String(nextRank).padStart(2,'0')}?q=${countMode}`);
+    };
+    const goTitle = () => start();
+    const goCollection = () => showCollection({ onClose: () => {} });
+  
+    showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle, onCollection: goCollection, earned });
+  
+    try {
+      const [suit, rstr] = curId.split('_');
+      const rankNum = Number(rstr);
+      unlockNextRank(suit, rankNum);
+      unlockNextCount(countMode);
+    } catch(_e){}
+  }
+
+
   function onCorrect(){
     combo += 1;
     addScore(json.rules?.scorePerHit ?? 100);
     selectedEl && (selectedEl.textContent = "SELECTED: なし");
     setLiveStatus('Correct ✓');
   
-    // 追加: 正解数でクリア判定
-    cleared += 1;
+    // 正解累計でのみ判定
+    session.cleared += 1;
+    try { console.debug('[stage] correct', { cleared: session.cleared, target: session.target }); } catch(_e){}
   
-    if (!endless && cleared >= totalCount){
-      document.body.classList.remove('paused');
-      // STAGE CLEAR
-      const totalScore = Number(scoreEl?.textContent || '0') || score;
-      const curId = baseId;
-      let earned = false;
-      try {
-        const before = new Set((loadState().flippedCards)||[]);
-        flipCard(curId);
-        const after = new Set((loadState().flippedCards)||[]);
-        earned = (!before.has(curId) && after.has(curId));
-      } catch {}
-      try { recordCardAcquired(curId, { score: totalScore }); } catch {}
-      stopBgm('bgm_stage');
-      playSfx('clear');
-  
-      const goRetry = () => start(`${curId}?q=${countMode}`);
-      const goNext = () => {
-        const [suit, rstr] = curId.split('_');
-        const r = Number(rstr);
-        const ranks = loadState().selectedRanks || {};
-        const sequence = Array.from({length:13},(_,k)=>k+1);
-        const after = sequence.slice(r).concat(sequence.slice(0, r));
-        const nextRank = (after.find(n => !!ranks[n])) || ((r % 13) + 1);
-        start(`${suit}_${String(nextRank).padStart(2,'0')}?q=${countMode}`);
-      };
-      const goTitle = () => start();
-      const goCollection = () => showCollection({ onClose: () => {} });
-      showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle, onCollection: goCollection, earned });
-  
-      // 段階解放の進行
-      try {
-        const [suit, rstr] = curId.split('_');
-        const rankNum = Number(rstr);
-        unlockNextRank(suit, rankNum);
-        unlockNextCount(countMode);
-      } catch(_e){}
+    if (!endless && !session.ended && session.cleared >= session.target){
+      stageClear();
     }
   }
   
@@ -264,19 +281,20 @@ let cleared = 0; // 正解累計（クリア判定はこれで行う）
         if (ok) {
           const remainEl = document.getElementById('remain');
           if (remainEl && countMode !== 'endless'){
-            const left = Math.max(0, Number(remainEl.textContent||questions.length) - 1);
-            remainEl.textContent = String(left);
-            if (remainBar){
-              const ratio = totalCount > 0 ? (left / totalCount) : 0;
-              remainBar.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
-            }
+            const left = Math.max(0, session.target - session.cleared);
+remainEl.textContent = String(left);
+if (remainBar){
+  const ratio = session.target > 0 ? (left / session.target) : 0;
+  remainBar.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
+}
+try { console.debug('[stage] progress', { cleared: session.cleared, left, target: session.target }); } catch(_e){}
           }
         }
         ctrl.resume();
         try { document.body.classList.remove('paused'); } catch(_e){}
       });
   }
-  if (fire) { fire.addEventListener('click', submit); fire.addEventListener('pointerup', submit); }
+  if (fire) { fire.addEventListener('click', submit); }
   if (answer) answer.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
   ensureLiveRegion(document.body);
   attachKeyboardSubmission({ inputEl: answer, onSubmit: submit, onClear: () => { try { ctrl.clear(); ctrl.resume(); document.body.classList.remove('paused'); } catch(_e){} } });
