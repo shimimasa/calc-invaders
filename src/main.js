@@ -156,13 +156,10 @@ let cleared = 0; // 正解累計（クリア判定はこれで行う）
     selectedEl && (selectedEl.textContent = "SELECTED: なし");
     setLiveStatus('Correct ✓');
   
-    // 正解累計を増加
+    // 追加: 正解数でクリア判定
     cleared += 1;
-  
-    // クリア判定: 問題数モードでは「正解数が目標数に到達」で確定
     if (!endless && cleared >= totalCount){
       document.body.classList.remove('paused');
-      // STAGE CLEAR
       const totalScore = Number(scoreEl?.textContent || '0') || score;
       const curId = baseId;
       let earned = false;
@@ -190,7 +187,6 @@ let cleared = 0; // 正解累計（クリア判定はこれで行う）
       const goCollection = () => showCollection({ onClose: () => {} });
       showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle, onCollection: goCollection, earned });
   
-      // 段階解放
       try {
         const [suit, rstr] = curId.split('_');
         const rankNum = Number(rstr);
