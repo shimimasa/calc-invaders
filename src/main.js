@@ -16,11 +16,16 @@ import { showCollection } from "./ui/collection.js";
 export async function start(stageId){
   const state = loadState();
   if (!stageId) {
-    // 初期: タイトル
+    // 初期: タイトル（タイトルBGM起動 + 初回解錠）
+    try { startBgm('bgm_title'); } catch(_e){}
+    const onceUnlockTitle = () => { try { unlockAudio(); startBgm('bgm_title'); } catch(_e){} document.removeEventListener('pointerup', onceUnlockTitle); };
+    document.addEventListener('pointerup', onceUnlockTitle, { once: true });
+    // タイトルUI
     const root = document.getElementById('title');
     mountTitle({
       rootEl: root,
       onStart: ({ suit, rank, difficulty, countMode }) => {
+        try { stopBgm('bgm_title'); } catch(_e){}
         setDifficulty(difficulty);
         setSelectedSuits({ ...loadState().selectedSuits, [suit]: true });
         if (!loadState().selectedRanks?.[rank]) {
@@ -121,7 +126,13 @@ export async function start(stageId){
         // STAGE CLEAR
         const totalScore = Number(scoreEl?.textContent || '0') || score;
         const curId = baseId;
-        try { flipCard(curId); } catch {}
+        let earned = false;
+        try {
+          const before = new Set((loadState().flippedCards)||[]);
+          flipCard(curId);
+          const after = new Set((loadState().flippedCards)||[]);
+          earned = (!before.has(curId) && after.has(curId));
+        } catch {}
         stopBgm('bgm_stage');
         playSfx('clear');
   
@@ -137,7 +148,7 @@ export async function start(stageId){
         };
         const goTitle = () => start();
         const goCollection = () => showCollection({ onClose: () => {} });
-        showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle, onCollection: goCollection });
+        showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle, onCollection: goCollection, earned });
       }
     }
   
