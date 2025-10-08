@@ -121,6 +121,7 @@ export async function start(stageId){
     }
   
   function gameOver(){
+    document.body.classList.remove('paused');
     const msg = document.getElementById('message');
     if (msg) msg.textContent = 'GAME OVER';
     playSfx('gameover');
@@ -143,6 +144,7 @@ export async function start(stageId){
       selectedEl && (selectedEl.textContent = "SELECTED: なし");
       setLiveStatus('Correct ✓');
       if (!endless && grid.children.length === 0){
+        document.body.classList.remove('paused');
         // STAGE CLEAR
         const totalScore = Number(scoreEl?.textContent || '0') || score;
         const curId = baseId;
@@ -200,6 +202,7 @@ export async function start(stageId){
     if (!btn) return;
     ctrl.lock(btn);
     ctrl.pause();
+    try { document.body.classList.add('paused'); } catch(_e){}
     selectedEl && (selectedEl.textContent = 'SELECTED: ' + btn.textContent);
     answer && answer.focus();
   };
@@ -246,12 +249,13 @@ export async function start(stageId){
           }
         }
         ctrl.resume();
+        try { document.body.classList.remove('paused'); } catch(_e){}
       });
   }
   if (fire) { fire.addEventListener('click', submit); fire.addEventListener('pointerup', submit); }
   if (answer) answer.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
   ensureLiveRegion(document.body);
-  attachKeyboardSubmission({ inputEl: answer, onSubmit: submit, onClear: () => { try { ctrl.clear(); ctrl.resume(); } catch(_e){} } });
+  attachKeyboardSubmission({ inputEl: answer, onSubmit: submit, onClear: () => { try { ctrl.clear(); ctrl.resume(); document.body.classList.remove('paused'); } catch(_e){} } });
 }
 
 export async function startReview(stage){

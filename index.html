@@ -49,8 +49,10 @@
     .enemy{position:absolute;border:1px solid var(--border);border-radius:10px;min-height:64px;display:grid;place-items:center;padding:6px 10px;background:var(--panel-2)}
     .enemy.lock{outline:2px solid var(--accent); box-shadow:0 0 0 4px rgba(59,227,255,0.1)}
     .enemy:focus{outline:2px solid var(--accent-2); outline-offset: 2px}
-    #panel{position:fixed;left:0;right:0;bottom:12px;display:flex;gap:8px;justify-content:center;align-items:center;margin:0}
+    #panel{position:fixed;left:0;right:0;bottom:12px;display:flex;flex-direction:column;gap:6px;justify-content:center;align-items:center;margin:0;padding:12px;border:1px solid var(--border);border-radius:var(--radius-lg);background:linear-gradient(180deg, rgba(26,32,56,.9), rgba(20,24,44,.9));backdrop-filter:saturate(120%) blur(6px);box-shadow:var(--shadow-md)}
     input{padding:10px 12px;font-size:18px;border-radius:10px;border:1px solid var(--border);min-width:280px;background:var(--panel);color:var(--text)}
+    .input-lg{font-size:20px; min-width:min(560px, 72vw);}
+    .muted{color:var(--muted)}
     button{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--btn-bg);color:var(--text);cursor:pointer;transition:transform var(--dur) var(--ease), background var(--dur) var(--ease)}
     button:hover{transform:translateY(-1px);background:var(--btn-bg-active)}
     #fire{background:linear-gradient(180deg, #2b325a, #1d2446)}
@@ -116,10 +118,13 @@
     <div id="grid" aria-label="enemies grid"></div>
 
     <div id="panel">
-      <span id="selected" aria-live="polite">SELECTED: なし</span>
-      <input id="answer" placeholder="答え（余りは 12,3 のように）" />
-      <button id="fire">発射</button>
-      <button id="next" style="display:none">次の面</button>
+      <div class="row" id="panel-row">
+        <span id="selected" class="pill" aria-live="polite">SELECTED: なし</span>
+        <input id="answer" class="input-lg" placeholder="答え（余りは 12,3 のように）" />
+        <button id="fire" class="btn btn--primary">発射</button>
+        <button id="next" style="display:none">次の面</button>
+      </div>
+      <small id="panel-hint" class="muted">Enterキーでも発射できます</small>
     </div>
 
     <script type="module" src="/src/main.js"></script>
