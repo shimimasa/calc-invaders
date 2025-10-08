@@ -1,5 +1,5 @@
 export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 5, descendSpeed = 1, spawnIntervalSec = 2.5, bottomY, onBottomReached, endless = false }) {
-  const state = { lockEl: null, entities: [], paused: false, spawnIdx: 0, spawnTimer: null, descendTimer: null };
+  const state = { lockEl: null, entities: [], paused: false, spawnIdx: 0, rafId: null, lastTs: null, spawnAccumSec: 0 };
   if (!rootEl) throw new Error('rootEl required');
   rootEl.innerHTML = "";
   rootEl.style.position = 'relative';
@@ -14,7 +14,7 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
 
   // 生成: 1体ずつスポーン（ランダム列）
   function spawnOne(){
-    if (!endless && state.spawnIdx >= questions.length) { clearInterval(state.spawnTimer); state.spawnTimer = null; return; }
+    if (!endless && state.spawnIdx >= questions.length) { return; }
     const q = endless ? questions[Math.floor(Math.random() * questions.length)] : questions[state.spawnIdx++];
     const el = document.createElement("button");
     el.className = "enemy focus-ring";
@@ -24,6 +24,7 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     el.textContent = q.formula + " = ?";
     el.dataset.answer = String(q.answer);
     if (typeof q.remainder === "number") el.dataset.remainder = String(q.remainder);
+    el.style.willChange = 'transform';
     rootEl.appendChild(el);
 
     const { w } = getFieldRect();
@@ -37,41 +38,47 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     el.addEventListener("click", () => lock(el));
   }
 
-  function startSpawn(){
-    stopSpawn();
-    const ms = Math.max(250, Math.floor(spawnIntervalSec * 1000));
-    state.spawnTimer = setInterval(() => { if (!state.paused) spawnOne(); }, ms);
-    spawnOne();
-  }
-  function stopSpawn(){
-    if (state.spawnTimer) { clearInterval(state.spawnTimer); state.spawnTimer = null; }
+  function wantMoreSpawns(){
+    return endless || state.spawnIdx < questions.length;
   }
 
-  // 降下: 全体を一定ステップで降下
-  function startDescend(){
-    stopDescend();
-    const tickMs = 200;
-    let t = 0;
-    state.descendTimer = setInterval(() => {
-      if (state.paused) return;
-      t += tickMs;
-      const step = Math.max(1, Math.floor(6 * descendSpeed));
-      for (let i=0;i<state.entities.length;i++){
-        const ent = state.entities[i];
-        ent.y += step;
-        // ほんの少しの横揺れ（列ランダム＋波）
-        const wiggle = Math.sin((ent.y + i*37) * 0.01) * 0.8;
-        ent.x = Math.max(0, Math.min(getFieldRect().w - 96, ent.x + wiggle));
-        place(ent.el, ent.x, ent.y);
+  // rAF ループ: 降下(デルタ駆動) + スポーン(経過時間)
+  function loop(ts){
+    state.rafId = requestAnimationFrame(loop);
+    const now = ts || performance.now();
+    const last = state.lastTs == null ? now : state.lastTs;
+    state.lastTs = now;
+    let dt = (now - last) / 1000; // seconds
+    if (state.paused) return;
+    // タブ復帰などでのジャンプ抑制
+    if (!(dt >= 0) || dt > 0.25) dt = 0.25;
+
+    // スポーン
+    if (wantMoreSpawns()){
+      state.spawnAccumSec += dt;
+      while (state.spawnAccumSec >= Math.max(0.2, spawnIntervalSec)){
+        spawnOne();
+        state.spawnAccumSec -= Math.max(0.2, spawnIntervalSec);
+        if (!wantMoreSpawns()) break;
       }
-      // 底判定
-      const limit = Number.isFinite(bottomY) ? bottomY : (getFieldRect().h - 64);
-      const reached = state.entities.some(ent => ent.y >= limit);
-      if (reached && onBottomReached) onBottomReached();
-    }, tickMs);
-  }
-  function stopDescend(){
-    if (state.descendTimer) { clearInterval(state.descendTimer); state.descendTimer = null; }
+    }
+
+    // 降下（px/sec基準）：旧仕様の約30px/sec * descendSpeed を踏襲
+    const pxPerSec = 30 * Math.max(0.1, descendSpeed);
+    const dy = pxPerSec * dt;
+    const field = getFieldRect();
+    for (let i=0;i<state.entities.length;i++){
+      const ent = state.entities[i];
+      ent.y += dy;
+      // ほんの少しの横揺れ（列ランダム＋波）
+      const wiggle = Math.sin((ent.y + i*37) * 0.01) * 0.8;
+      ent.x = Math.max(0, Math.min(field.w - 96, ent.x + wiggle));
+      place(ent.el, ent.x, ent.y);
+    }
+    // 底判定
+    const limit = Number.isFinite(bottomY) ? bottomY : (field.h - 64);
+    const reached = state.entities.some(ent => ent.y >= limit);
+    if (reached && onBottomReached) onBottomReached();
   }
 
   function lock(el) {
@@ -118,8 +125,9 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     }
   }
 
-  startSpawn();
-  startDescend();
+  // 初期スポーン1体（体感待ちを減らす）
+  spawnOne();
+  state.rafId = requestAnimationFrame(loop);
 
   return {
     lock: (iOrEl) => lock(iOrEl?.nodeType ? iOrEl : rootEl.children[iOrEl]),
@@ -129,6 +137,6 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     getSelected: () => state.lockEl,
     pause: () => { state.paused = true; },
     resume: () => { state.paused = false; },
-    stop: () => { stopDescend(); stopSpawn(); }
+    stop: () => { if (state.rafId) cancelAnimationFrame(state.rafId); state.rafId = null; }
   };
 }

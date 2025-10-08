@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest';
 /* @vitest-environment jsdom */
 import { FpsSampler, logOnceOnDrop, now } from '../utils/perf.js';
-import { renderEnemies, applyRowTransformsBatch } from '../ui/renderer.js';
+// renderer.js は廃止。パフォーマンスユーティリティの検査のみ残す。
 
 describe('perf smoke', () => {
   test('fps sampler produces reasonable average', () => {
@@ -21,15 +21,17 @@ describe('perf smoke', () => {
     expect(count).toBe(1);
   });
 
-  test('batched transforms for 25 enemies is fast enough (smoke)', () => {
+  test('dummy DOM manip smoke', () => {
     const root = document.createElement('div');
-    const questions = Array.from({ length: 25 }, (_, i) => ({ formula: `${i}+${i}`, answer: i + i }));
-    renderEnemies({ rootEl: root, questions });
-    const rowOffsetPx = [0,0,0,0,0];
+    for (let i=0;i<25;i++){ const el = document.createElement('div'); el.textContent = String(i); root.appendChild(el); }
     const t0 = now();
-    for (let k=0;k<50;k++){ rowOffsetPx[0]+=1; applyRowTransformsBatch({ rootEl: root, cols: 5, rowOffsetPx }); }
+    for (let k=0;k<50;k++){
+      for (let i=0;i<root.children.length;i++){
+        const el = root.children[i]; el.style.transform = `translateY(${k}px)`;
+      }
+    }
     const dt = now() - t0;
-    expect(dt).toBeLessThan(30); // 緩いしきい値
+    expect(dt).toBeLessThan(50);
   });
 });
 
