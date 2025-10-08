@@ -1,20 +1,24 @@
 let injected = false;
 // src/ui/effects.js
-export function shootProjectile({ fromEl, toEl, color = '#3BE3FF', duration = 250, hit = true }) {
+export function shootProjectile({ fromEl, toEl, from, to, color = '#3BE3FF', duration = 250, hit = true }) {
   return new Promise((resolve) => {
     const root = document.body;
-    const a = fromEl.getBoundingClientRect();
-    const b = toEl.getBoundingClientRect();
+    const aRect = fromEl?.getBoundingClientRect?.();
+    const bRect = toEl?.getBoundingClientRect?.();
+    const ax = typeof from?.x === 'number' ? from.x : (aRect ? (aRect.left + aRect.width/2) : 0);
+    const ay = typeof from?.y === 'number' ? from.y : (aRect ? (aRect.top + aRect.height/2) : 0);
+    const bx = typeof to?.x === 'number' ? to.x : (bRect ? (bRect.left + bRect.width/2) : 0);
+    const by = typeof to?.y === 'number' ? to.y : (bRect ? (bRect.top + bRect.height/2) : 0);
     const dot = document.createElement('div');
     Object.assign(dot.style, {
-      position: 'fixed', left: `${a.left + a.width/2}px`, top: `${a.top + a.height/2}px`,
+      position: 'fixed', left: `${ax}px`, top: `${ay}px`,
       width: '8px', height: '8px', borderRadius: '50%', background: color, zIndex: 9999,
       transition: `transform ${duration}ms linear, opacity 120ms ease-out`
     });
     root.appendChild(dot);
     requestAnimationFrame(() => {
-      const dx = (b.left + b.width/2) - (a.left + a.width/2);
-      const dy = (b.top + b.height/2) - (a.top + a.height/2);
+      const dx = bx - ax;
+      const dy = by - ay;
       dot.style.transform = `translate(${dx}px, ${dy}px)`;
     });
     setTimeout(() => {

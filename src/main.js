@@ -183,9 +183,13 @@ export async function start(stageId){
     const willHit = ctrl.previewCheck?.(normalized) === true;
     const fromEl = document.getElementById('fire') || answer;
     const toEl = selected;
+    // 画面下パネル中央から狙った敵の中心へ
+    const panel = document.getElementById('panel');
+    const pr = panel?.getBoundingClientRect?.();
+    const fromPos = pr ? { x: pr.left + pr.width/2, y: pr.top + pr.height/2 } : undefined;
 
     playSfx('shot');
-    shootProjectile({ fromEl, toEl, color: willHit ? '#3BE3FF' : '#ff5252', hit: willHit })
+    shootProjectile({ fromEl, toEl, from: fromPos, color: willHit ? '#3BE3FF' : '#ff5252', hit: willHit })
       .then(() => {
         if (willHit) {
           playSfx('hit');
