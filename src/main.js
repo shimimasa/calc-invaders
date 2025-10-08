@@ -6,11 +6,12 @@ import { buildReviewStage } from "./core/reviewStage.js";
 import { mountMenu } from "./ui/menu.js";
 import { mountSettings } from "./ui/settings.js";
 import { prepareAnswer, attachKeyboardSubmission, setLiveStatus, setNumericInputAttributes } from "./ui/inputHandler.js";
-import { unlockAudio } from "./audio/index.js";
+import { unlockAudio, playSfx, startBgm, stopBgm } from "./audio/index.js";
 import { ensureLiveRegion } from "./utils/accessibility.js";
 import { mountTitle } from "./ui/title.js";
 import { shootProjectile, showHitEffect, showMissEffect } from "./ui/effects.js";
 import { showStageClear } from "./ui/result.js";
+import { showCollection } from "./ui/collection.js";
 
 export async function start(stageId){
   const state = loadState();
@@ -91,6 +92,8 @@ export async function start(stageId){
     function gameOver(){
       const msg = document.getElementById('message');
       if (msg) msg.textContent = 'GAME OVER';
+      playSfx('gameover');
+      stopBgm('bgm_stage');
       updateState({ lives: 0, score });
     }
   
@@ -100,10 +103,13 @@ export async function start(stageId){
       selectedEl && (selectedEl.textContent = "SELECTED: なし");
       setLiveStatus('Correct ✓');
       if (!endless && grid.children.length === 0){
-        // STAGE CLEAR: 結果画面 + カード獲得
+        // STAGE CLEAR
         const totalScore = Number(scoreEl?.textContent || '0') || score;
         const curId = baseId;
         try { flipCard(curId); } catch {}
+        stopBgm('bgm_stage');
+        playSfx('clear');
+  
         const goRetry = () => start(`${curId}?q=${countMode}`);
         const goNext = () => {
           const [suit, rstr] = curId.split('_');
@@ -115,7 +121,8 @@ export async function start(stageId){
           start(`${suit}_${String(nextRank).padStart(2,'0')}?q=${countMode}`);
         };
         const goTitle = () => start();
-        showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle });
+        const goCollection = () => showCollection({ onClose: () => {} });
+        showStageClear({ stageId: curId, score: totalScore, onRetry: goRetry, onNext: goNext, onTitle: goTitle, onCollection: goCollection });
       }
     }
   
@@ -139,6 +146,7 @@ export async function start(stageId){
       onWrong,
       endless
     });
+    startBgm('bgm_stage');
 
   const selectHandler = (e) => {
     const btn = e.target.closest('.enemy');
@@ -161,20 +169,22 @@ export async function start(stageId){
     const fromEl = document.getElementById('fire') || answer;
     const toEl = selected;
 
-    // 命中演出→判定・削除
+    playSfx('shot');
     shootProjectile({ fromEl, toEl, color: willHit ? '#3BE3FF' : '#ff5252', hit: willHit })
       .then(() => {
         if (willHit) {
-          // 爆発エフェクト
-          // showHitEffect は toEl の位置を使うので submit 前に呼ぶ
-          // （削除後は位置が取れないため）
+          playSfx('hit');
           showHitEffect({ rootEl: document.body, anchorEl: toEl, text: '+100' });
         } else {
-          // 外れ演出（画面フラッシュ＆シェイク）
+          playSfx('miss');
           // showMissEffect({ rootEl: document.body });
         }
         const ok = ctrl.submit(normalized);
-        if (ok) answer.value = '';
+        if (ok) {
+          answer.value = '';
+          const remainEl = document.getElementById('remain');
+          if (remainEl && countMode !== 'endless') remainEl.textContent = String(Math.max(0, Number(remainEl.textContent||questions.length) - 1));
+        }
       });
   }
   if (fire) { fire.addEventListener('click', submit); fire.addEventListener('pointerup', submit); }

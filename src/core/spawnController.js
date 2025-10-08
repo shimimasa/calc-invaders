@@ -51,11 +51,17 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
   function startDescend(){
     stopDescend();
     const tickMs = 200;
+    let t = 0;
     state.descendTimer = setInterval(() => {
       if (state.paused) return;
+      t += tickMs;
       const step = Math.max(1, Math.floor(6 * descendSpeed));
-      for (const ent of state.entities){
+      for (let i=0;i<state.entities.length;i++){
+        const ent = state.entities[i];
         ent.y += step;
+        // ほんの少しの横揺れ（列ランダム＋波）
+        const wiggle = Math.sin((ent.y + i*37) * 0.01) * 0.8;
+        ent.x = Math.max(0, Math.min(getFieldRect().w - 96, ent.x + wiggle));
         place(ent.el, ent.x, ent.y);
       }
       // 底判定
