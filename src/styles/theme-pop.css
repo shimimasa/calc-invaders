@@ -128,3 +128,51 @@
     #answer-panel input[type="text"]{ min-width:min(78vw,420px); }
   }
   
+  /* ===== 強制コントラスト・ユーティリティ ===== */
+.on-dark {
+    color: #fff !important;
+    text-shadow:
+      0 2px 4px rgba(0,0,0,.45),
+      0 0 2px rgba(0,0,0,.55);
+  }
+  .on-light {
+    color: #222 !important;
+    text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  }
+  
+  /* ボタンやチップ系は白文字を基本に（濃色背景でも読める） */
+  button, .btn, .chip, .pill,
+  button * {
+    color: #fff !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,.35);
+  }
+  
+  /* 無効ボタンも読めるように */
+  button:disabled, .btn:disabled {
+    opacity: .75;
+    background: #3a4256 !important;  /* すこし濃いめ */
+    color: #e9edf7 !important;
+  }
+  
+  /* 問題カードは背景色に応じて切替（JSが .on-dark / .on-light を付与） */
+  .problem-card.on-dark,
+  .question.on-dark,
+  .question-card.on-dark {
+    border-color: #ffd84d;
+    box-shadow: 0 8px 24px rgba(0,0,0,.22), 0 0 10px rgba(255,220,80,.45);
+  }
+  .problem-card.on-light,
+  .question.on-light,
+  .question-card.on-light {
+    color:#222 !important;
+  }
+  
+  /* オーバーレイ系（「一時停止」「STAGE CLEAR!」など）を必ず読める白に */
+  .overlay-text, .pause-text, .modal-title, .stage-clear-title,
+  .overlay h1, .overlay h2, .modal h1, .modal h2 {
+    color:#fff !important;
+    text-shadow:
+      0 3px 8px rgba(0,0,0,.55),
+      0 0 6px rgba(0,0,0,.55);
+  }
+  
