@@ -100,12 +100,13 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     if (!b || !b.isConnected || b.parentElement !== rootEl) return false;
     const needRem = b.dataset.remainder != null;
     if (needRem) {
-      const parts = raw.split(/[、,]/).map(s => s.trim()).filter(Boolean);
+            // 余りつき回答の区切り: カンマ / 全角カンマ / 空白 を許可
+      const parts = String(raw).split(/[、,\s]+/).map(s => s.trim()).filter(Boolean);
       if (parts.length !== 2) return false;
       const q = Number(parts[0]), r = Number(parts[1]);
       return (q === Number(b.dataset.answer) && r === Number(b.dataset.remainder));
     } else {
-      return Number(raw.trim()) === Number(b.dataset.answer);
+      return Number(String(raw).trim()) === Number(b.dataset.answer);
     }
   }
 
@@ -147,8 +148,14 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
     clear: () => clearLock(),
     getSelected: () => state.lockEl,
     pause: () => { state.paused = true; },
-    resume: () => { state.paused = false; },
-    stop: () => { if (state.rafId) cancelAnimationFrame(state.rafId); state.rafId = null; },
+        resume: () => { state.paused = false; state.lastTs = performance.now(); },
+        stop: () => { if (state.rafId) cancelAnimationFrame(state.rafId); state.rafId = null; },
+        // 現在の敵とロックを全て破棄（cleanupStageで呼ぶと安全）
+        dispose: () => {
+          try { clearLock(); } catch(_) {}
+          state.entities.splice(0).forEach(ent => { try { ent.el.remove(); } catch(_) {} });
+          rootEl.innerHTML = "";
+        },
     // 追加: 残スポーン/盤面情報
     isSpawningDone: () => !wantMoreSpawns(),
     getSpawnedCount: () => state.spawnIdx,
