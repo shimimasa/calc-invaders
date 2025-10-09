@@ -176,3 +176,13 @@
       0 0 6px rgba(0,0,0,.55);
   }
   
+  /* ===== HUD文字（Score, Life, Selected）を黒に固定 ===== */
+[data-hud] .score-label,
+[data-hud] .life-label,
+[data-hud] .selected-label,
+.hud .score-label,
+.hud .life-label,
+.hud .selected-label {
+  color: #000 !important;
+  text-shadow: none !important;
+}
