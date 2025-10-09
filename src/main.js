@@ -249,8 +249,8 @@ try { setQuestionCountMode(countMode); } catch(_e){}
       cols: json.enemySet?.cols ?? 5,
       descendSpeed: descend,
       spawnIntervalSec: spawnInt,
-      bottomY: Math.max(120, (grid?.getBoundingClientRect?.().height || 480) - 64),
-      onBottomReached: () => gameOver(),
+      bottomY: 9999, // GameOver誤発火防止（画面外に設定）
+      onBottomReached: () => { try { console.debug('[stage] bottom reached - triggering gameOver'); } catch(_e){} gameOver(); },
       onCorrect,
       onWrong,
       endless
@@ -267,7 +267,7 @@ try { setQuestionCountMode(countMode); } catch(_e){}
     answer && answer.focus();
   };
   grid.addEventListener('click', selectHandler);
-  grid.addEventListener('pointerup', selectHandler);
+  // pointerup を削除（二重発火防止）
   
   function submit(){
     // 多重送信ガード
@@ -332,7 +332,9 @@ try { setQuestionCountMode(countMode); } catch(_e){}
   if (fire) { fire.addEventListener('click', submit); }
   if (answer) answer.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
   ensureLiveRegion(document.body);
-  attachKeyboardSubmission({ inputEl: answer, onSubmit: submit, onClear: () => { try { ctrl.clear(); ctrl.resume(); document.body.classList.remove('paused'); } catch(_e){} } });
+  // attachKeyboardSubmission を削除（Enter/Space重複の元凶）
+  // Escape でのクリアのみ追加
+  if (answer) answer.addEventListener('keydown', (e) => { if (e.key === 'Escape') { try { ctrl.clear(); ctrl.resume(); document.body.classList.remove('paused'); } catch(_e){} } });
 }
 
 export async function startReview(stage){
