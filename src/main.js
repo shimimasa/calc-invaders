@@ -270,24 +270,30 @@ try { setQuestionCountMode(countMode); } catch(_e){}
   // pointerup を削除（二重発火防止）
   
   function submit(){
+    try { console.debug('[submit] start'); } catch(_e){}
     // 多重送信ガード
-    if (submitBusy) return;
+    if (submitBusy) { try { console.debug('[submit] busy, skipping'); } catch(_e){} return; }
     submitBusy = true;
     try { if (fire) fire.disabled = true; } catch(_e){}
   
     const selected = ctrl.getSelected?.();
+    try { console.debug('[submit] selected:', selected, 'isConnected:', selected?.isConnected); } catch(_e){}
     if (!selected || !selected.isConnected) {
+      try { console.debug('[submit] no selection, aborting'); } catch(_e){}
       submitBusy = false; try { if (fire) fire.disabled = false; } catch(_e){}
       return;
     }
     const needRem = selected.dataset.remainder != null;
     const normalized = prepareAnswer(answer.value, { needRemainder: needRem });
+    try { console.debug('[submit] input:', answer.value, 'normalized:', normalized, 'needRem:', needRem); } catch(_e){}
     if (normalized == null) {
+      try { console.debug('[submit] normalization failed, aborting'); } catch(_e){}
       submitBusy = false; try { if (fire) fire.disabled = false; } catch(_e){}
       return;
     }
   
     const willHit = ctrl.previewCheck?.(normalized) === true;
+    try { console.debug('[submit] willHit:', willHit); } catch(_e){}
     const fromEl = document.getElementById('fire') || answer;
     const toEl = selected;
     const panel = document.getElementById('panel');
@@ -297,6 +303,7 @@ try { setQuestionCountMode(countMode); } catch(_e){}
     playSfx('shot');
     shootProjectile({ fromEl, toEl, from: fromPos, color: willHit ? '#3BE3FF' : '#ff5252', hit: willHit })
       .then(() => {
+        try { console.debug('[submit] projectile landed'); } catch(_e){}
         if (willHit) {
           playSfx('hit');
           showHitEffect({ rootEl: document.body, anchorEl: toEl, text: '+100' });
@@ -305,6 +312,7 @@ try { setQuestionCountMode(countMode); } catch(_e){}
         }
   
         const ok = ctrl.submit(normalized);
+        try { console.debug('[submit] ctrl.submit result:', ok); } catch(_e){}
         // 入力は正誤に関わらずクリア
         answer.value = '';
   
@@ -313,6 +321,7 @@ try { setQuestionCountMode(countMode); } catch(_e){}
           if (remainEl && countMode !== 'endless'){
             const left = Math.max(0, session.target - session.cleared);
             remainEl.textContent = String(left);
+            try { console.debug('[submit] UI update - left:', left, 'cleared:', session.cleared, 'target:', session.target); } catch(_e){}
             if (remainBar){
               const ratio = session.target > 0 ? (left / session.target) : 0;
               remainBar.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;

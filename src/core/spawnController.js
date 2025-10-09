@@ -111,19 +111,26 @@ export function spawnController({ rootEl, questions, onCorrect, onWrong, cols = 
 
   function submit(raw) {
     const b = state.lockEl;
-    if (!b || !b.isConnected || b.parentElement !== rootEl) { state.lockEl = null; return false; }
+    try { console.debug('[ctrl.submit] lockEl:', b, 'isConnected:', b?.isConnected, 'parent:', b?.parentElement === rootEl); } catch(_e){}
+    if (!b || !b.isConnected || b.parentElement !== rootEl) { 
+      try { console.debug('[ctrl.submit] invalid lock, aborting'); } catch(_e){}
+      state.lockEl = null; return false; 
+    }
     const ok = previewCheck(raw);
+    try { console.debug('[ctrl.submit] previewCheck result:', ok, 'expected:', b.dataset.answer, 'remainder:', b.dataset.remainder, 'input:', raw); } catch(_e){}
 
     if (ok) {
       const idx = state.entities.findIndex(e => e.el === b);
       if (idx >= 0) state.entities.splice(idx, 1);
       b.remove();
       state.lockEl = null;
+      try { console.debug('[ctrl.submit] correct! calling onCorrect'); } catch(_e){}
       onCorrect && onCorrect();
       return true;
     } else {
       const ent = state.entities.find(e => e.el === b);
       if (ent){ ent.y += Math.max(8, Math.floor(14 * descendSpeed)); place(ent.el, ent.x, ent.y); }
+      try { console.debug('[ctrl.submit] wrong! calling onWrong'); } catch(_e){}
       onWrong && onWrong();
       return false;
     }
