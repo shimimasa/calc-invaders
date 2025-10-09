@@ -77,7 +77,6 @@ export async function start(stageId){
 let combo = 0;
 let lives = Number(lifeEl?.textContent || '3') || 3;
 let score = Number(scoreEl?.textContent || '0') || 0;
-let cleared = 0; // 正解累計（クリア判定はこれで行う）
 
 let submitBusy = false; // 追加: 送信多重防止
   
@@ -110,6 +109,20 @@ if (remainElInit && !endless) {
   if (remainBar) remainBar.style.width = '100%';
 }
 
+// countMode を決めた直後に追加
+const modeEl = document.getElementById('mode');
+if (modeEl) {
+  const label = countMode === '5' ? '5問（ウォームアップ）'
+    : countMode === '10' ? '10問（標準）'
+    : countMode === '20' ? '20問（集中ドリル）'
+    : countMode === '30' ? '30問（やり込み/小テスト）'
+    : '∞（エンドレス）';
+  modeEl.textContent = label;
+}
+
+// 状態へも反映（URLから来たqを正として保存）
+try { setQuestionCountMode(countMode); } catch(_e){}
+
   // 難易度（スピードのみ）適用
   const diff = (loadState().difficulty || 'normal');
   const speedMap = {
@@ -136,6 +149,7 @@ if (remainElInit && !endless) {
   if (remainBar && !endless) remainBar.style.width = '100%';
   if (timeBar) timeBar.style.width = '100%';
   
+
     function addScore(base){
       const gained = base + Math.min(combo * 10, 100);
       score += gained;
@@ -252,16 +266,22 @@ if (remainElInit && !endless) {
   grid.addEventListener('pointerup', selectHandler);
   
   function submit(){
-    // 追加: 多重発火ガード
+    // 多重送信ガード
     if (submitBusy) return;
     submitBusy = true;
     try { if (fire) fire.disabled = true; } catch(_e){}
   
     const selected = ctrl.getSelected?.();
-    if (!selected || !selected.isConnected) { submitBusy = false; try { if (fire) fire.disabled = false; } catch(_e){}; return; }
+    if (!selected || !selected.isConnected) {
+      submitBusy = false; try { if (fire) fire.disabled = false; } catch(_e){}
+      return;
+    }
     const needRem = selected.dataset.remainder != null;
     const normalized = prepareAnswer(answer.value, { needRemainder: needRem });
-    if (normalized == null) { submitBusy = false; try { if (fire) fire.disabled = false; } catch(_e){}; return; }
+    if (normalized == null) {
+      submitBusy = false; try { if (fire) fire.disabled = false; } catch(_e){}
+      return;
+    }
   
     const willHit = ctrl.previewCheck?.(normalized) === true;
     const fromEl = document.getElementById('fire') || answer;
@@ -281,6 +301,7 @@ if (remainElInit && !endless) {
         }
   
         const ok = ctrl.submit(normalized);
+        // 入力は正誤に関わらずクリア
         answer.value = '';
   
         if (ok) {
@@ -293,7 +314,6 @@ if (remainElInit && !endless) {
               remainBar.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
             }
           }
-          try { console.debug('[stage] progress', { cleared: session.cleared, left: (session.target - session.cleared), target: session.target }); } catch(_e){}
         }
   
         ctrl.resume();
@@ -304,6 +324,7 @@ if (remainElInit && !endless) {
         try { if (fire) fire.disabled = false; } catch(_e){}
       });
   }
+
   if (fire) { fire.addEventListener('click', submit); }
   if (answer) answer.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
   ensureLiveRegion(document.body);
