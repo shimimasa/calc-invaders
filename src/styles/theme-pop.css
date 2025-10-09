@@ -1,204 +1,201 @@
-/* ===== Bright Pop Theme v2 ===== */
-:root{
-    --bg-top:#e1f5fe;        /* 明るい水色 */
-    --bg-bottom:#b3e5fc;     /* すこし濃い水色 */
-    --text:#333;
-    --panel:#fff8d9;         /* HUDバッジ */
-    --shadow:0 8px 24px rgba(0,0,0,.10);
-  
-    /* カード/ボタン/バー */
-    --card-bg:#fffdf5;       /* 問題カードの背景（黒→白系へ） */
-    --card-border:#ffcc00;   /* カードの枠 */
-    --card-border-hover:#ffd84d;
-    --accent:#ff9800;        /* 発射ボタン */
-    --accent-2:#66bb6a;      /* Remain */
-    --alert:#ef5350;         /* Time  */
-  }
-  
-  html,body{
-    height:100%;
-    margin:0;
-    color:var(--text);
-    font-family:"M PLUS Rounded 1c","Noto Sans JP",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    background:linear-gradient(180deg,var(--bg-top),var(--bg-bottom));
-  }
-  
-  /* ===== HUD（左右ブロック化にも対応） ===== */
-  [data-hud], .hud, header .status, .top-bar{
-    display:flex; flex-wrap:wrap; gap:.5rem;
-    padding:.6rem .8rem; align-items:center;
-  }
-  .hud-left, .hud-right{ display:flex; gap:.6rem; }
-  .hud-right{ margin-left:auto; }
-  
-  [data-hud] > * , .hud > * , header .status > * , .top-bar > * ,
-  .hud-left > * , .hud-right > *{
-    background:var(--panel);
-    padding:.35rem .65rem;
-    border-radius:999px;
-    font-weight:700;
-    box-shadow:var(--shadow);
-    color:#000 !important;
-    text-shadow:none !important;
-  }
-  
-  /* Remain/Time の色差を少し強調（class名が付く場合を想定） */
-  .badge-remain{ background:#e9f7ee !important; }
-  .badge-time{ background:#ffe9e9 !important; }
-  
-  /* ===== 問題カード（式のみ） ===== */
-  .problem-card, .question, .question-card{
-    background:var(--card-bg);
-    border:3px solid var(--card-border);
-    border-radius:18px;
-    padding:.8rem 1.1rem;
-    font-size:clamp(18px,3.4vw,28px);
-    font-weight:800;
-    letter-spacing:.5px;
-    display:inline-block;
-    color:#222;
-    box-shadow:var(--shadow);
-    transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-    text-shadow:1px 1px 0 rgba(255,255,255,.4);
-    user-select:none;
-  }
-  .problem-card:hover, .question:hover, .question-card:hover{
-    transform:translateY(-2px);
-    box-shadow:0 10px 28px rgba(0,0,0,.16), 0 0 12px rgba(255,220,80,.6);
-    border-color:var(--card-border-hover);
-  }
-  .problem-card.is-active, .question.is-active, .question-card.is-active{
-    border-color:#ffcf00;
-    transform:translateY(-3px) scale(1.02);
-  }
-  
-  /* ===== 回答パネル（中央下・水平整列） ===== */
-  #answer-panel, .answer-panel, .bottom-input{
-    position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
-    display:flex; gap:.6rem; align-items:center; justify-content:center;
-    background:rgba(255,255,255,.88);
-    padding:.6rem .8rem; border-radius:16px; box-shadow:var(--shadow);
-    backdrop-filter:blur(4px);
-  }
-  #answer-panel input[type="text"],
-  .answer-panel input[type="text"],
-  .bottom-input input[type="text"]{
-    min-width:min(60vw,520px);
-    height:2.8rem;                         /* 入力とボタンの高さを合わせる */
-    font-size:clamp(18px,2.6vw,22px);
-    padding:.6rem .8rem;
-    border-radius:12px; border:2px solid #eee; outline:none;
-  }
-  #answer-panel input[type="text"]::placeholder{ color:#999; }
-  
-  /* ===== 発射ボタン ===== */
-  #fire-btn, .fire-btn, button.launch, button.fire{
-    height:2.8rem;                         /* 入力と高さを揃える */
-    font-size:clamp(16px,2.2vw,20px);
-    font-weight:900; padding:0 1.4rem;
-    border:none; border-radius:14px;
-    background:var(--accent); color:#fff; cursor:pointer;
-    box-shadow:var(--shadow);
-    transition:transform .08s ease, filter .08s ease;
-  }
-  #fire-btn:hover, .fire-btn:hover, button.launch:hover, button.fire:hover{
-    transform:translateY(-1px); filter:brightness(1.04);
-  }
-  
-  /* ===== 進捗バー（内側ラベル） ===== */
-  .progress, .remain-bar, .time-bar{
-    position:relative;
-    width:min(46vw,560px); height:14px;
-    border-radius:999px; overflow:hidden;
-    background:#fff; box-shadow:var(--shadow);
-  }
-  .progress > .fill, .remain-bar > .fill{ background:var(--accent-2); height:100%; }
-  .time-bar > .fill{ background:var(--alert); height:100%; }
-  .progress .label, .remain-bar .label, .time-bar .label{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    font-size:12px; font-weight:800; color:#333;
-  }
-  
-  /* ===== プレイ背景（中央楕円が強ければ薄める） ===== */
-  .stage-background, .playground, .arena{
-    opacity:.8;            /* 目立ち過ぎ抑制。クラス名は想定 */
-  }
-  
-  /* ===== モバイル ===== */
-  @media (max-width:640px){
-    #answer-panel, .answer-panel, .bottom-input{ bottom:12px; gap:.5rem; }
-    #answer-panel input[type="text"]{ min-width:min(78vw,420px); }
-  }
-  
-  /* ===== 強制コントラスト・ユーティリティ ===== */
+/* ===== Bright Pop Theme v3 (HUD文字黒固定版) ===== */
+:root {
+  --bg-top: #e1f5fe;        /* 明るい水色 */
+  --bg-bottom: #b3e5fc;     /* すこし濃い水色 */
+  --text: #333;
+  --panel: #fff8d9;         /* HUDバッジ背景 */
+  --shadow: 0 8px 24px rgba(0,0,0,.10);
+
+  /* カード/ボタン/バー */
+  --card-bg: #fffdf5;       /* 問題カードの背景 */
+  --card-border: #ffcc00;   /* カードの枠 */
+  --card-border-hover: #ffd84d;
+  --accent: #ff9800;        /* 発射ボタン */
+  --accent-2: #66bb6a;      /* Remainバー */
+  --alert: #ef5350;         /* Timeバー */
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  color: var(--text);
+  font-family: "M PLUS Rounded 1c", "Noto Sans JP", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+}
+
+/* ===== HUD（上部ステータス） ===== */
+[data-hud], .hud, header .status, .top-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  padding: .6rem .8rem;
+  align-items: center;
+}
+.hud-left, .hud-right { display: flex; gap: .6rem; }
+.hud-right { margin-left: auto; }
+
+[data-hud] > *, .hud > *, header .status > *, .top-bar > *,
+.hud-left > *, .hud-right > * {
+  background: var(--panel);
+  padding: .35rem .65rem;
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  color: #000 !important;          /* ← HUD文字は黒固定 */
+  text-shadow: none !important;
+}
+
+/* Remain/Time の色差を強調 */
+.badge-remain { background: #e9f7ee !important; }
+.badge-time   { background: #ffe9e9 !important; }
+
+/* ===== 問題カード ===== */
+.problem-card, .question, .question-card {
+  background: var(--card-bg);
+  border: 3px solid var(--card-border);
+  border-radius: 18px;
+  padding: .8rem 1.1rem;
+  font-size: clamp(18px, 3.4vw, 28px);
+  font-weight: 800;
+  letter-spacing: .5px;
+  display: inline-block;
+  color: #222;
+  box-shadow: var(--shadow);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  text-shadow: 1px 1px 0 rgba(255,255,255,.4);
+  user-select: none;
+}
+.problem-card:hover, .question:hover, .question-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.16), 0 0 12px rgba(255,220,80,.6);
+  border-color: var(--card-border-hover);
+}
+.problem-card.is-active, .question.is-active, .question-card.is-active {
+  border-color: #ffcf00;
+  transform: translateY(-3px) scale(1.02);
+}
+
+/* ===== 回答パネル（下部） ===== */
+#answer-panel, .answer-panel, .bottom-input {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: .6rem;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.88);
+  padding: .6rem .8rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(4px);
+}
+#answer-panel input[type="text"],
+.answer-panel input[type="text"],
+.bottom-input input[type="text"] {
+  min-width: min(60vw, 520px);
+  height: 2.8rem;
+  font-size: clamp(18px, 2.6vw, 22px);
+  padding: .6rem .8rem;
+  border-radius: 12px;
+  border: 2px solid #eee;
+  outline: none;
+}
+#answer-panel input[type="text"]::placeholder { color: #999; }
+
+/* ===== 発射ボタン ===== */
+#fire-btn, .fire-btn, button.launch, button.fire {
+  height: 2.8rem;
+  font-size: clamp(16px, 2.2vw, 20px);
+  font-weight: 900;
+  padding: 0 1.4rem;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform .08s ease, filter .08s ease;
+}
+#fire-btn:hover, .fire-btn:hover, button.launch:hover, button.fire:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+/* ===== 進捗バー ===== */
+.progress, .remain-bar, .time-bar {
+  position: relative;
+  width: min(46vw, 560px);
+  height: 14px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+.progress > .fill, .remain-bar > .fill { background: var(--accent-2); height: 100%; }
+.time-bar > .fill { background: var(--alert); height: 100%; }
+.progress .label, .remain-bar .label, .time-bar .label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: #333;
+}
+
+/* ===== 背景 ===== */
+.stage-background, .playground, .arena { opacity: .8; }
+
+/* ===== モバイル ===== */
+@media (max-width: 640px) {
+  #answer-panel, .answer-panel, .bottom-input { bottom: 12px; gap: .5rem; }
+  #answer-panel input[type="text"] { min-width: min(78vw, 420px); }
+}
+
+/* ===== コントラストユーティリティ ===== */
 .on-dark {
-    color: #fff !important;
-    text-shadow:
-      0 2px 4px rgba(0,0,0,.45),
-      0 0 2px rgba(0,0,0,.55);
-  }
-  .on-light {
-    color: #222 !important;
-    text-shadow: 0 1px 0 rgba(255,255,255,.5);
-  }
-  
-  /* ボタンやチップ系は白文字を基本に（濃色背景でも読める） */
-  button, .btn, .chip, .pill,
-  button * {
-    color: #fff !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,.35);
-  }
-  
-  /* 無効ボタンも読めるように */
-  button:disabled, .btn:disabled {
-    opacity: .75;
-    background: #3a4256 !important;  /* すこし濃いめ */
-    color: #e9edf7 !important;
-  }
-  
-  /* 問題カードは背景色に応じて切替（JSが .on-dark / .on-light を付与） */
-  .problem-card.on-dark,
-  .question.on-dark,
-  .question-card.on-dark {
-    border-color: #ffd84d;
-    box-shadow: 0 8px 24px rgba(0,0,0,.22), 0 0 10px rgba(255,220,80,.45);
-  }
-  .problem-card.on-light,
-  .question.on-light,
-  .question-card.on-light {
-    color:#222 !important;
-  }
-  
-  /* オーバーレイ系（「一時停止」「STAGE CLEAR!」など）を必ず読める白に */
-  .overlay-text, .pause-text, .modal-title, .stage-clear-title,
-  .overlay h1, .overlay h2, .modal h1, .modal h2 {
-    color:#fff !important;
-    text-shadow:
-      0 3px 8px rgba(0,0,0,.55),
-      0 0 6px rgba(0,0,0,.55);
-  }
-  
-  /* ===== HUD文字（Score, Life, Selected）を黒に固定 ===== */
-[data-hud] .score-label,
-[data-hud] .life-label,
-[data-hud] .selected-label,
-.hud .score-label,
-.hud .life-label,
-.hud .selected-label {
+  color: #fff !important;
+  text-shadow:
+    0 2px 4px rgba(0,0,0,.45),
+    0 0 2px rgba(0,0,0,.55);
+}
+.on-light {
+  color: #222 !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.5);
+}
+
+/* ===== ボタンは常に白文字 ===== */
+button, .btn, button * {
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35);
+}
+
+/* ===== チップ・ピルは黒固定 ===== */
+.chip, .pill {
   color: #000 !important;
   text-shadow: none !important;
 }
 
-/* HUD内だけは白文字のグローバル規則を打ち消す */
-[data-hud] .pill, .hud .pill, header .status .pill, .top-bar .pill,
-[data-hud] .chip, .hud .chip, header .status .chip, .top-bar .chip,
-[data-hud] .btn,  .hud .btn,  header .status .btn,  .top-bar .btn {
-  color:#000 !important;
-  text-shadow:none !important;
+/* ===== オーバーレイ文字（ステージクリアなど） ===== */
+.overlay-text, .pause-text, .modal-title, .stage-clear-title,
+.overlay h1, .overlay h2, .modal h1, .modal h2 {
+  color: #fff !important;
+  text-shadow:
+    0 3px 8px rgba(0,0,0,.55),
+    0 0 6px rgba(0,0,0,.55);
 }
 
-/* 下部のSELECTEDバッジも黒に */
-#answer-panel .pill, .answer-panel .pill, .bottom-input .pill {
-  color:#000 !important;
-  text-shadow:none !important;
+/* ===== HUD内はボタン以外すべて黒固定（SELECTED含む） ===== */
+[data-hud] :not(button):not(.btn),
+.hud :not(button):not(.btn),
+header .status :not(button):not(.btn),
+.top-bar :not(button):not(.btn),
+#answer-panel :not(button):not(.btn),
+.answer-panel :not(button):not(.btn),
+.bottom-input :not(button):not(.btn) {
+  color: #000 !important;
+  text-shadow: none !important;
 }
