@@ -3,11 +3,11 @@
     const q = (sel) => document.querySelector(sel);
   
     // 面倒でも毎回安全に参照
-    const getFireBtn = () => q('#fire-btn, .fire-btn, button.launch, button.fire');
+    const getFireBtn = () => q('#fire, #fire-btn, .fire-btn, button.launch, button.fire');
   
     // 1) 入力欄で Enter → 発射（IME確定は除外）
     const bindEnter = () => {
-      const inp = q('#answer-panel input[type="text"], .answer-panel input[type="text"], .bottom-input input[type="text"]');
+      const inp = q('#answer, #answer-panel input[type="text"], .answer-panel input[type="text"], .bottom-input input[type="text"]');
       if (!inp) return;
   
       // 既存重複を避ける
