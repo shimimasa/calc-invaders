@@ -89,6 +89,11 @@ let submitBusy = false; // 追加: 送信多重防止
   const unlocked = getUnlockedCounts();
   const countMode = unlocked.includes(String(rawQ)) ? String(rawQ) : (unlocked[unlocked.length-1] || '5');
 
+
+// 状態へも反映（URLから来た q を正として保存）
+try { setQuestionCountMode(countMode); } catch(_e){}
+
+
   const res = await fetch(`data/stages/${baseId}.json`);
   if (!res.ok) throw new Error(`stage not found: ${baseId}`);
   const json = await res.json();
@@ -109,7 +114,7 @@ if (remainElInit && !endless) {
   if (remainBar) remainBar.style.width = '100%';
 }
 
-// countMode を決めた直後に追加
+// HUDのMode表示を更新
 const modeEl = document.getElementById('mode');
 if (modeEl) {
   const label = countMode === '5' ? '5問（ウォームアップ）'
@@ -225,7 +230,6 @@ try { setQuestionCountMode(countMode); } catch(_e){}
     // 正解数でのみ判定
     session.cleared += 1;
     try { console.debug('[stage] correct', { cleared: session.cleared, target: session.target }); } catch(_e){}
-  
     if (!endless && !session.ended && session.cleared >= session.target){
       stageClear();
     }
