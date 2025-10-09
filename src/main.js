@@ -18,6 +18,7 @@ import { showStageClear, showGameOver } from "./ui/result.js";
 import { showCollection } from "./ui/collection.js";
 import { StageSession } from "./core/stageSession.js";
 import { Hud } from "./ui/hud.js";
+import './styles/theme-pop.css';
 
 // -----------------------
 // stage-scoped resources
