@@ -1,4 +1,4 @@
-// main.js (replace-all)
+// main.js (StageSession/Hud統合版)
 
 import { loadStage } from "./core/questionBank.js";
 import { spawnController } from "./core/spawnController.js";
@@ -7,7 +7,6 @@ import {
   loadState, updateState, setLastStageId, clearIncorrectFormula, getIncorrectFormulas,
   setDifficulty, setSelectedSuits, setSelectedRanks, flipCard, recordCardAcquired,
   getUnlockedCounts, unlockNextCount, unlockNextRank
-  // setQuestionCountMode は存在しない環境でもあるため後段で try/catch 呼び出し
 } from "./core/gameState.js";
 import { buildReviewStage } from "./core/reviewStage.js";
 import { mountTitle } from "./ui/title.js";
@@ -17,39 +16,37 @@ import { ensureLiveRegion } from "./utils/accessibility.js";
 import { shootProjectile, showHitEffect } from "./ui/effects.js";
 import { showStageClear, showGameOver } from "./ui/result.js";
 import { showCollection } from "./ui/collection.js";
+import { StageSession } from "./core/stageSession.js";
+import { Hud } from "./ui/hud.js";
 
 // -----------------------
 // stage-scoped resources
 // -----------------------
-let ctrl = null;                    // spawnController インスタンス
-let selectHandlerBound = null;      // grid click handler
-let submitClickBound = null;        // fire click handler
-let enterKeyBound = null;           // answer keydown(Enter)
-let escKeyBound = null;             // answer keydown(Escape)
-let submitBusy = false;             // 多重送信ガード
+let ctrl = null;
+let selectHandlerBound = null;
+let submitClickBound = null;
+let enterKeyBound = null;
+let escKeyBound = null;
+let submitBusy = false;
 
 function cleanupStage() {
   try { document.body.classList.remove('paused'); } catch(_) {}
-
-  // stop controller loop
   try { ctrl?.stop(); } catch(_) {}
   ctrl = null;
 
-  // remove listeners (if elements still exist)
   const grid = document.getElementById('grid');
   const fire = document.getElementById('fire');
   const answer = document.getElementById('answer');
 
-  if (grid && selectHandlerBound)  { grid.removeEventListener('click', selectHandlerBound); }
-  if (fire && submitClickBound)    { fire.removeEventListener('click', submitClickBound); }
-  if (answer && enterKeyBound)     { answer.removeEventListener('keydown', enterKeyBound); }
-  if (answer && escKeyBound)       { answer.removeEventListener('keydown', escKeyBound); }
+  if (grid && selectHandlerBound)  grid.removeEventListener('click', selectHandlerBound);
+  if (fire && submitClickBound)    fire.removeEventListener('click', submitClickBound);
+  if (answer && enterKeyBound)     answer.removeEventListener('keydown', enterKeyBound);
+  if (answer && escKeyBound)       answer.removeEventListener('keydown', escKeyBound);
 
   selectHandlerBound = null;
   submitClickBound = null;
   enterKeyBound = null;
   escKeyBound = null;
-
   submitBusy = false;
 }
 
@@ -61,19 +58,17 @@ export async function start(stageId) {
 
   // タイトル画面
   if (!stageId) {
-    cleanupStage(); // 念のため前ステージの残留を掃除
+    cleanupStage();
     try { startBgm('bgm_title'); } catch(_) {}
     const onceUnlockTitle = () => { try { unlockAudio(); startBgm('bgm_title'); } catch(_) {} document.removeEventListener('pointerup', onceUnlockTitle); };
     document.addEventListener('pointerup', onceUnlockTitle, { once: true });
 
-    // 「コレクション > このステージで遊ぶ」経由
     const onPlay = (e) => {
       const id = e?.detail?.stageId;
       if (id) { window.removeEventListener('ci:playStage', onPlay); start(`${id}?q=${(loadState().questionCountMode||'10')}`); }
     };
     window.addEventListener('ci:playStage', onPlay, { once: true });
 
-    // タイトル以外を隠す
     const topEl = document.getElementById('top');   if (topEl) topEl.style.display = 'none';
     const gridEl = document.getElementById('grid'); if (gridEl) gridEl.style.display = 'none';
     const panelEl = document.getElementById('panel'); if (panelEl) panelEl.style.display = 'none';
@@ -107,7 +102,7 @@ export async function start(stageId) {
   // --------------------
   // Stage Screen Setup
   // --------------------
-  cleanupStage(); // ステージ遷移時の残留を確実に掃除
+  cleanupStage();
   setLastStageId(stageId);
 
   const topEl2 = document.getElementById('top');   if (topEl2) topEl2.style.display = '';
@@ -129,9 +124,7 @@ export async function start(stageId) {
   const patternEl = document.getElementById('pattern');
   const modeEl = document.getElementById('mode');
 
-  // モバイル: 数値キーボード誘導
   setNumericInputAttributes(answer);
-  // 初回タップでオーディオ許可
   const onceUnlock = () => { unlockAudio(); document.removeEventListener('pointerup', onceUnlock); };
   document.addEventListener('pointerup', onceUnlock, { once: true });
 
@@ -148,27 +141,22 @@ export async function start(stageId) {
   const unlocked = getUnlockedCounts();
   const countMode = unlocked.includes(String(rawQ)) ? String(rawQ) : (unlocked[unlocked.length-1] || '5');
 
-  // 環境によっては存在しないので try
-  try { /* global from gameState possibly */ setQuestionCountMode(countMode); } catch(_) {}
+  try { setQuestionCountMode(countMode); } catch(_) {}
 
-  // JSON 読み込み
   const res = await fetch(`data/stages/${baseId}.json`);
   if (!res.ok) throw new Error(`stage not found: ${baseId}`);
   const json = await res.json();
 
-  // 問題生成
   let questionsAll = await loadStage(json);
 
   const endless = (countMode === 'endless');
   const targetCount = endless ? questionsAll.length : Math.min(questionsAll.length, Number(countMode) || 10);
 
-  // 0 問ガード（生成失敗・設定ミス時の非常弁）
   if (!endless && targetCount === 0) {
     console.warn('[guard] questions empty, fallback to preGenerated/all');
     if (Array.isArray(json?.preGenerated) && json.preGenerated.length > 0) {
       questionsAll = json.preGenerated.slice();
     } else {
-      // 最後の最後の非常弁
       questionsAll = [{ formula: '1 + 1', answer: 2 }];
     }
   }
@@ -176,7 +164,6 @@ export async function start(stageId) {
   const questions = endless ? questionsAll : questionsAll.slice(0, Math.max(1, targetCount));
   const totalCount = questions.length;
 
-  // HUD: mode
   if (modeEl) {
     const label = countMode === '5'  ? '5問（ウォームアップ）'
                 : countMode === '10' ? '10問（標準）'
@@ -186,7 +173,6 @@ export async function start(stageId) {
     modeEl.textContent = label;
   }
 
-  // 難易度パラメータ
   const diff = (loadState().difficulty || 'normal');
   const speedMap = {
     easy:   { descendSpeed: 0.7, spawnIntervalSec: 3.0 },
@@ -199,7 +185,6 @@ export async function start(stageId) {
   const descend = Math.max(0.4, Math.min(3.0, stageDesc * tuned.descendSpeed));
   const spawnInt = Math.max(0.6, Math.min(5.0, stageSpawn / (tuned.descendSpeed)));
 
-  // HUD: stage, pattern
   if (stageEl) {
     const [suit, rank] = baseId.split('_');
     const sym = suit === 'heart' ? '♡' : suit === 'spade' ? '♠' : suit === 'club' ? '♣' : '♦';
@@ -207,15 +192,10 @@ export async function start(stageId) {
   }
   if (patternEl) patternEl.textContent = String(json?.generator?.pattern || '');
 
-  // 残数表示の初期値
-  if (remainEl && !endless) {
-    remainEl.textContent = String(totalCount);
-    if (remainBar) remainBar.style.width = '100%';
-  }
+  Hud.setRemain(remainEl, endless ? Infinity : totalCount, endless ? Infinity : totalCount, remainBar);
   if (timeBar) timeBar.style.width = '100%';
 
-  // ステージ進捗（このステージ内だけ）
-  const session = { target: totalCount, cleared: 0, ended: false };
+  const session = new StageSession({ target: totalCount, endless });
 
   // --------------------
   // helpers
@@ -223,11 +203,11 @@ export async function start(stageId) {
   function addScore(base) {
     const gained = base + Math.min(combo * 10, 100);
     score += gained;
-    if (scoreEl) scoreEl.textContent = String(score);
+    Hud.setScore(scoreEl, score);
   }
 
   function gameOver() {
-    cleanupStage(); // まず停止＆掃除
+    cleanupStage();
     const msg = document.getElementById('message');
     if (msg) msg.textContent = 'GAME OVER';
     playSfx('gameover');
@@ -243,9 +223,9 @@ export async function start(stageId) {
 
   function stageClear() {
     if (session.ended) return;
-    session.ended = true;
+    session.end();
 
-    cleanupStage(); // 二重発火防止・残留掃除
+    cleanupStage();
     const totalScore = Number(scoreEl?.textContent || '0') || score;
     const curId = baseId;
 
@@ -289,17 +269,14 @@ export async function start(stageId) {
     addScore(json.rules?.scorePerHit ?? 100);
     if (selectedEl) selectedEl.textContent = "SELECTED: なし";
     setLiveStatus('Correct ✓');
-
-    session.cleared += 1;
-    if (!endless && !session.ended && session.cleared >= session.target) {
-      stageClear();
-    }
+    session.onCorrect();
+    if (!session.ended && session.isClear) stageClear();
   }
 
   function onWrong() {
     combo = 0;
     lives -= 1;
-    if (lifeEl) lifeEl.textContent = String(lives);
+    Hud.setLives(lifeEl, lives);
     setLiveStatus('Wrong ✗');
     if (lives <= 0) return gameOver();
   }
@@ -313,7 +290,7 @@ export async function start(stageId) {
     cols: json.enemySet?.cols ?? 5,
     descendSpeed: descend,
     spawnIntervalSec: spawnInt,
-    bottomY: 9999, // 画面外に設定し“底”による誤GameOverを防止
+    bottomY: 9999,
     onBottomReached: () => { try { console.debug('[stage] bottom reached - triggering gameOver'); } catch(_) {} gameOver(); },
     onCorrect,
     onWrong,
@@ -363,22 +340,9 @@ export async function start(stageId) {
     shootProjectile({ fromEl, toEl: selected, from: fromPos, color: willHit ? '#3BE3FF' : '#ff5252', hit: willHit })
       .then(() => {
         if (willHit) { playSfx('hit'); showHitEffect({ rootEl: document.body, anchorEl: selected, text: '+100' }); }
-        else { /* miss */ }
-
         const ok = ctrl.submit(normalized);
-        // 入力は正誤に関わらずクリア
         answer.value = '';
-
-        // HUD更新（正解時のみ残数を減らす）
-        if (ok && remainEl && countMode !== 'endless') {
-          const left = Math.max(0, session.target - session.cleared);
-          remainEl.textContent = String(left);
-          if (remainBar) {
-            const ratio = session.target > 0 ? (left / session.target) : 0;
-            remainBar.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
-          }
-        }
-
+        if (ok) Hud.setRemain(remainEl, session.remain, session.target, remainBar);
         ctrl.resume();
         try { document.body.classList.remove('paused'); } catch(_) {}
       })
@@ -404,7 +368,7 @@ export async function start(stageId) {
 export async function startReview(stage) {
   const payload = stage || buildReviewStage({ rows: 1, cols: Math.min(10, getIncorrectFormulas().length) });
 
-  cleanupStage(); // 念のため
+  cleanupStage();
 
   const grid = document.getElementById('grid');
   const answer = document.getElementById('answer');
@@ -412,7 +376,7 @@ export async function startReview(stage) {
   let score = Number(scoreEl?.textContent || '0') || 0;
 
   const questions = payload.preGenerated;
-  const indexMap = new Map(); // formula -> first index in log
+  const indexMap = new Map();
   getIncorrectFormulas().forEach((f, idx) => { if (!indexMap.has(f)) indexMap.set(f, idx); });
 
   function onCorrect() {
@@ -448,7 +412,6 @@ export async function startReview(stage) {
   if (fire) fire.addEventListener('click', submitClickBound, { once: true });
 }
 
-// 初期起動
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => start());
 }
