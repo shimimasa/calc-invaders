@@ -1,6 +1,6 @@
-// main.js (StageSession/Hud統合版)
+// main.js（事前確定対応版：preload + count 指定 load）
 
-import { loadStage } from "./core/questionBank.js";
+import { loadStage, preloadStageById } from "./core/questionBank.js";
 import { spawnController } from "./core/spawnController.js";
 import { renderCardTower } from "./ui/cardTower.js";
 import {
@@ -78,7 +78,7 @@ export async function start(stageId) {
     const root = document.getElementById('title');
     mountTitle({
       rootEl: root,
-      onStart: ({ suit, rank, difficulty, countMode }) => {
+      onStart: async ({ suit, rank, difficulty, countMode }) => {
         try { stopBgm('bgm_title'); } catch(_) {}
         setDifficulty(difficulty);
         setSelectedSuits({ ...loadState().selectedSuits, [suit]: true });
@@ -87,7 +87,14 @@ export async function start(stageId) {
           for (let i=1; i<=13; i++) r[i] = !!r[i];
           r[rank] = true; setSelectedRanks(r);
         }
-        start(`${suit}_${String(rank).padStart(2,'0')}?q=${String(countMode)}`);
+        // ここで事前確定（固定本数モードのみ）
+        const id = `${suit}_${String(rank).padStart(2,'0')}`;
+        const finite = String(countMode) !== 'endless';
+        if (finite) {
+          const c = Number(countMode) || 10;
+          await preloadStageById(id, c);
+        }
+        start(`${id}?q=${String(countMode)}`);
       },
       onOpenStageSelect: () => {
         const towerRoot = document.getElementById('tower');
@@ -147,9 +154,11 @@ export async function start(stageId) {
   if (!res.ok) throw new Error(`stage not found: ${baseId}`);
   const json = await res.json();
 
-  let questionsAll = await loadStage(json);
-
+  // count を渡してキャッシュ即ヒットさせる（endless は undefined で従来どおり）
   const endless = (countMode === 'endless');
+  const targetCountPreset = endless ? undefined : (Number(countMode) || 10);
+  let questionsAll = await loadStage({ ...json, stageId: baseId }, targetCountPreset);
+
   const targetCount = endless ? questionsAll.length : Math.min(questionsAll.length, Number(countMode) || 10);
 
   if (!endless && targetCount === 0) {

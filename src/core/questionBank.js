@@ -4,9 +4,10 @@ import { generate as genSub } from './generators/subtraction.js';
 import { generate as genMul } from './generators/multiplication.js';
 import { generate as genDiv } from './generators/division.js';
 
-// ---- In-memory cache (by stageId) ----
-// 再プレイでの再生成を避けるため、直近の生成結果を保持
-const stageCache = new Map(); // stageId -> { questions: Array }
+// ---- In-memory cache (by stageId#count) ----
+// 事前確定や再プレイの再生成を避けるため、直近の生成結果を保持
+// キーは `${stageId}#${count}`。count が未指定（endless 等）の場合は `${stageId}#auto`
+const stageCache = new Map(); // key -> { questions: Array }
 
 // 未知キーの警告はキーごとに1回のみ
 const warnedConstraintKeys = new Set();
@@ -74,12 +75,17 @@ function callGenerator(operation, rank, count, constraints){
 }
 
 // 直近ウィンドウ重複回避付き pre-generate
-export function preGenerate(stageJson){
+export function preGenerate(stageJson, forcedCount){
   const { operation, rank, enemySet = {}, generator = {} } = stageJson || {};
   const constraints = generator?.constraints || {};
   const rows = Number.isFinite(enemySet.rows) ? enemySet.rows : 2;
   const cols = Number.isFinite(enemySet.cols) ? enemySet.cols : 5;
-  let need = rows * cols; if (!Number.isFinite(need) || need <= 0) need = 10;
+
+  let need = Number.isFinite(forcedCount) && forcedCount > 0
+    ? forcedCount
+    : (rows * cols);
+
+  if (!Number.isFinite(need) || need <= 0) need = 10;
 
   const WINDOW_SIZE = 50;
   const MAX_ATTEMPTS = 20;
@@ -108,36 +114,58 @@ export function preGenerate(stageJson){
   return out;
 }
 
-export function loadStage(stageJson){
+/**
+ * ステージの問題を読み込む。count が指定されていれば、その数ちょうどを優先。
+ * - preGenerated が十分あればそれを利用
+ * - 事前に stageCache に入っていれば即返
+ * - それ以外は生成してキャッシュ
+ */
+export function loadStage(stageJson, count){
   const { operation, rank, enemySet = {}, preGenerated, stageId, shuffle } = stageJson;
   const constraints = stageJson?.generator?.constraints || {};
 
   // 安全なデフォルト
   const rows = Number.isFinite(enemySet.rows) ? enemySet.rows : 2;
   const cols = Number.isFinite(enemySet.cols) ? enemySet.cols : 5;
-  let need = rows * cols;
+  let need = Number.isFinite(count) && count > 0 ? count : rows * cols;
   if (!Number.isFinite(need) || need <= 0) need = 10;
 
   // 制約キー検証（未知キーは警告して継続）
   validateConstraints(stageJson);
   warnUnusedConstraintKeys(operation, constraints);
 
-  // preGenerated 優先
+  const cacheKey = stageId ? `${stageId}#${Number.isFinite(count) && count > 0 ? need : 'auto'}` : null;
+
+  // preGenerated 優先（count が来ていたら count 件ちょうどで切る）
   if (Array.isArray(preGenerated) && preGenerated.length >= need) {
     const sliced = preGenerated.slice(0, need);
-    if (stageId) stageCache.set(stageId, { questions: sliced });
+    if (cacheKey) stageCache.set(cacheKey, { questions: sliced });
     return shuffle === true ? fisherYatesShuffleCopy(sliced) : sliced;
   }
 
   // キャッシュ命中
-  if (stageId && stageCache.has(stageId)){
-    const cached = stageCache.get(stageId).questions;
+  if (cacheKey && stageCache.has(cacheKey)){
+    const cached = stageCache.get(cacheKey).questions;
     return shuffle === true ? fisherYatesShuffleCopy(cached) : cached;
   }
   
   // 生成（重複抑制付き）
-  const qs = preGenerate(stageJson);
-  if (stageId) stageCache.set(stageId, { questions: qs });
+  const qs = preGenerate(stageJson, need);
+  if (cacheKey) stageCache.set(cacheKey, { questions: qs });
   return shuffle === true ? fisherYatesShuffleCopy(qs) : qs;
 }
 
+/**
+ * ステージIDと count を指定して事前確定しておく（UI 遷移前に呼ぶ）
+ * - fetch して JSON を取得
+ * - loadStage(json, count) を呼び、キャッシュへ確定保存
+ */
+export async function preloadStageById(stageId, count){
+  const res = await fetch(`data/stages/${stageId}.json`);
+  if (!res.ok) throw new Error(`stage not found: ${stageId}`);
+  const json = await res.json();
+  // stageId を JSON に確実に含める
+  const withId = { ...json, stageId };
+  // ここで生成＆キャッシュ。戻り値は使わなくてもOK
+  loadStage(withId, count);
+}
