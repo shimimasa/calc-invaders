@@ -1,122 +1,114 @@
+/* ===== Bright Pop Theme v2 ===== */
 :root{
-    --bg-top:#e1f5fe;       /* 明るい水色 */
-    --bg-bottom:#b3e5fc;    /* もう少し濃い水色 */
+    --bg-top:#e1f5fe;        /* 明るい水色 */
+    --bg-bottom:#b3e5fc;     /* すこし濃い水色 */
     --text:#333;
-    --card-bg:#fff;
-    --card-border:#ffeb3b;  /* イエロー */
-    --accent:#ff9800;       /* 発射ボタン */
-    --accent-2:#66bb6a;     /* 残り問題バー */
-    --alert:#ef5350;        /* 残り時間バー */
-    --panel:#fff8d9;        /* HUDバッジ背景(黄み) */
-    --shadow: 0 8px 24px rgba(0,0,0,.10);
+    --panel:#fff8d9;         /* HUDバッジ */
+    --shadow:0 8px 24px rgba(0,0,0,.10);
+  
+    /* カード/ボタン/バー */
+    --card-bg:#fffdf5;       /* 問題カードの背景（黒→白系へ） */
+    --card-border:#ffcc00;   /* カードの枠 */
+    --card-border-hover:#ffd84d;
+    --accent:#ff9800;        /* 発射ボタン */
+    --accent-2:#66bb6a;      /* Remain */
+    --alert:#ef5350;         /* Time  */
   }
   
   html,body{
     height:100%;
     margin:0;
     color:var(--text);
-    font-family: "M PLUS Rounded 1c", "Noto Sans JP", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+    font-family:"M PLUS Rounded 1c","Noto Sans JP",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:linear-gradient(180deg,var(--bg-top),var(--bg-bottom));
   }
   
-  /* 上部HUDがdiv群でもulでも、まとめて見やすく */
+  /* ===== HUD（左右ブロック化にも対応） ===== */
   [data-hud], .hud, header .status, .top-bar{
-    display:flex;
-    flex-wrap:wrap;
-    gap:.5rem;
-    padding:.6rem .8rem;
-    align-items:center;
+    display:flex; flex-wrap:wrap; gap:.5rem;
+    padding:.6rem .8rem; align-items:center;
   }
-  [data-hud] > * , .hud > *, header .status > *, .top-bar > *{
+  .hud-left, .hud-right{ display:flex; gap:.6rem; }
+  .hud-right{ margin-left:auto; }
+  
+  [data-hud] > * , .hud > * , header .status > * , .top-bar > * ,
+  .hud-left > * , .hud-right > *{
     background:var(--panel);
     padding:.35rem .65rem;
     border-radius:999px;
     font-weight:700;
-    box-shadow: var(--shadow);
+    box-shadow:var(--shadow);
   }
   
-  /* 問題カード（式のみ） */
+  /* Remain/Time の色差を少し強調（class名が付く場合を想定） */
+  .badge-remain{ background:#e9f7ee !important; }
+  .badge-time{ background:#ffe9e9 !important; }
+  
+  /* ===== 問題カード（式のみ） ===== */
   .problem-card, .question, .question-card{
     background:var(--card-bg);
     border:3px solid var(--card-border);
     border-radius:18px;
     padding:.8rem 1.1rem;
-    font-size: clamp(18px, 3.4vw, 28px);
+    font-size:clamp(18px,3.4vw,28px);
     font-weight:800;
     letter-spacing:.5px;
     display:inline-block;
-    box-shadow: var(--shadow);
-    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    color:#222;
+    box-shadow:var(--shadow);
+    transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    text-shadow:1px 1px 0 rgba(255,255,255,.4);
     user-select:none;
   }
-  .problem-card:hover,
-  .question:hover,
-  .question-card:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(0,0,0,.16);
-    border-color:#ffe066;
+  .problem-card:hover, .question:hover, .question-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 28px rgba(0,0,0,.16), 0 0 12px rgba(255,220,80,.6);
+    border-color:var(--card-border-hover);
   }
-  .problem-card.is-active,
-  .question.is-active,
-  .question-card.is-active{
-    border-color:#ffd000;
-    transform: translateY(-3px) scale(1.02);
+  .problem-card.is-active, .question.is-active, .question-card.is-active{
+    border-color:#ffcf00;
+    transform:translateY(-3px) scale(1.02);
   }
   
-  /* 回答パネル（下部中央寄せを想定） */
-  #answer-panel, .answer-panel, footer .input, .bottom-input{
-    position:fixed;
-    left:50%;
-    bottom:20px;
-    transform:translateX(-50%);
-    display:flex;
-    gap:.6rem;
-    align-items:center;
-    background: rgba(255,255,255,.85);
-    padding:.6rem .8rem;
-    border-radius:16px;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(4px);
+  /* ===== 回答パネル（中央下・水平整列） ===== */
+  #answer-panel, .answer-panel, .bottom-input{
+    position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
+    display:flex; gap:.6rem; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.88);
+    padding:.6rem .8rem; border-radius:16px; box-shadow:var(--shadow);
+    backdrop-filter:blur(4px);
   }
   #answer-panel input[type="text"],
   .answer-panel input[type="text"],
   .bottom-input input[type="text"]{
-    min-width:min(60vw, 520px);
-    font-size: clamp(18px, 2.6vw, 22px);
+    min-width:min(60vw,520px);
+    height:2.8rem;                         /* 入力とボタンの高さを合わせる */
+    font-size:clamp(18px,2.6vw,22px);
     padding:.6rem .8rem;
-    border-radius:12px;
-    border:2px solid #eee;
-    outline:none;
+    border-radius:12px; border:2px solid #eee; outline:none;
   }
   #answer-panel input[type="text"]::placeholder{ color:#999; }
   
-  /* 発射ボタン（ロケット） */
+  /* ===== 発射ボタン ===== */
   #fire-btn, .fire-btn, button.launch, button.fire{
-    font-size: clamp(16px, 2.2vw, 20px);
-    font-weight:900;
-    padding:.7rem 1rem;
-    border:none;
-    border-radius:999px;
-    background: var(--accent);
-    color:#fff;
-    cursor:pointer;
-    box-shadow: var(--shadow);
-    transition: transform .08s ease, filter .08s ease;
+    height:2.8rem;                         /* 入力と高さを揃える */
+    font-size:clamp(16px,2.2vw,20px);
+    font-weight:900; padding:0 1.4rem;
+    border:none; border-radius:14px;
+    background:var(--accent); color:#fff; cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .08s ease, filter .08s ease;
   }
   #fire-btn:hover, .fire-btn:hover, button.launch:hover, button.fire:hover{
-    transform: translateY(-1px);
-    filter: brightness(1.04);
+    transform:translateY(-1px); filter:brightness(1.04);
   }
   
-  /* 進捗バー（ラベルを中に表示） */
+  /* ===== 進捗バー（内側ラベル） ===== */
   .progress, .remain-bar, .time-bar{
     position:relative;
-    width: min(46vw, 560px);
-    height: 14px;
-    border-radius:999px;
-    overflow:hidden;
-    background:#fff;
-    box-shadow: var(--shadow);
+    width:min(46vw,560px); height:14px;
+    border-radius:999px; overflow:hidden;
+    background:#fff; box-shadow:var(--shadow);
   }
   .progress > .fill, .remain-bar > .fill{ background:var(--accent-2); height:100%; }
   .time-bar > .fill{ background:var(--alert); height:100%; }
@@ -125,14 +117,14 @@
     font-size:12px; font-weight:800; color:#333;
   }
   
-  /* モバイル余白 */
-  @media (max-width: 640px){
-    #answer-panel, .answer-panel, .bottom-input{
-      bottom:12px;
-      gap:.5rem;
-    }
-    #answer-panel input[type="text"]{
-      min-width:min(78vw, 420px);
-    }
+  /* ===== プレイ背景（中央楕円が強ければ薄める） ===== */
+  .stage-background, .playground, .arena{
+    opacity:.8;            /* 目立ち過ぎ抑制。クラス名は想定 */
+  }
+  
+  /* ===== モバイル ===== */
+  @media (max-width:640px){
+    #answer-panel, .answer-panel, .bottom-input{ bottom:12px; gap:.5rem; }
+    #answer-panel input[type="text"]{ min-width:min(78vw,420px); }
   }
   
