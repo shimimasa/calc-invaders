@@ -19,6 +19,7 @@ import { showCollection } from "./ui/collection.js";
 import { StageSession } from "./core/stageSession.js";
 import { Hud } from "./ui/hud.js";
 import './styles/theme-pop.css';
+import './ui/patch-pop.js';
 
 // -----------------------
 // stage-scoped resources
