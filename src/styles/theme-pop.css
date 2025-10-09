@@ -38,6 +38,8 @@
     border-radius:999px;
     font-weight:700;
     box-shadow:var(--shadow);
+    color:#000 !important;
+    text-shadow:none !important;
   }
   
   /* Remain/Time の色差を少し強調（class名が付く場合を想定） */
@@ -185,4 +187,18 @@
 .hud .selected-label {
   color: #000 !important;
   text-shadow: none !important;
+}
+
+/* HUD内だけは白文字のグローバル規則を打ち消す */
+[data-hud] .pill, .hud .pill, header .status .pill, .top-bar .pill,
+[data-hud] .chip, .hud .chip, header .status .chip, .top-bar .chip,
+[data-hud] .btn,  .hud .btn,  header .status .btn,  .top-bar .btn {
+  color:#000 !important;
+  text-shadow:none !important;
+}
+
+/* 下部のSELECTEDバッジも黒に */
+#answer-panel .pill, .answer-panel .pill, .bottom-input .pill {
+  color:#000 !important;
+  text-shadow:none !important;
 }

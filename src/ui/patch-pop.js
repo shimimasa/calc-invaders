@@ -22,6 +22,7 @@
   const yiq = ([r,g,b]) => (r*299 + g*587 + b*114) / 1000;
 
   const applyContrast = (el) => {
+    if (el.closest('[data-hud], .hud, header .status, .top-bar, #answer-panel, .answer-panel, .bottom-input')) return;
     // 背景色（透明なら親を辿る）
     let node = el, bg = '';
     while (node && node !== document && (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent')) {
