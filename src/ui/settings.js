@@ -9,6 +9,33 @@ export function openSettingsModal() {
   modal.showModal();
 }
 
+// --- 既存の import/コードはそのまま ---
+// import { state, saveState } from '../state/storage.js';
+// export function openSettingsModal() { ... } など
+
+// ▼▼ ここから追加：互換用フック（呼び出し元が期待しているエクスポート） ▼▼
+export function mountSettings() {
+  // Vercelのビルド時などSSR環境で実行されても安全に抜ける
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  // よくあるセレクタを順に探す（あなたのUIに合わせて増やしてOK）
+  const btn =
+    document.querySelector('[data-action="open-settings"]') ||
+    document.querySelector('#btnSettings') ||
+    document.querySelector('.js-open-settings');
+
+  // 二重バインド防止
+  if (btn && !btn.dataset.boundSettings) {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      try { openSettingsModal(); } catch (_) {}
+    });
+    btn.dataset.boundSettings = '1';
+  }
+}
+// ▲▲ ここまで追加 ▲▲
+
+
 function ensureModal() {
   let modal = document.getElementById('settingsModal');
   if (modal) return modal;
