@@ -1,4 +1,4 @@
-/* ===== Bright Pop Theme v3.1 (HUD/Settings 可読性強化) ===== */
+/* ===== Bright Pop Theme v3.2 (HUD/Settings 可読性強化 + Modal修正) ===== */
 :root {
   --bg-top: #e1f5fe;        /* 明るい水色 */
   --bg-bottom: #b3e5fc;     /* すこし濃い水色 */
@@ -180,9 +180,7 @@ button, .btn, button * {
 }
 
 /* ===== 暗いオーバーレイ上の文字だけ白固定 ===== */
-.overlay, .pause-overlay, .stage-clear, .modal-dark {
-  /* ダーク背景のコンテナ（必要ならアプリ側のクラスに合わせてください） */
-}
+.overlay, .pause-overlay, .stage-clear, .modal-dark { }
 .overlay .overlay-text,
 .pause-overlay .pause-text,
 .stage-clear .stage-clear-title,
@@ -205,7 +203,7 @@ header .status :not(button):not(.btn),
   text-shadow: none !important;
 }
 
-/* ===== Settings（設定）画面は黒文字で読みやすく ===== */
+/* ===== Settings（設定）画面の可読性（共通） ===== */
 .settings, [data-settings], .settings-panel, .settings-section, .settings-modal {
   color:#000 !important;
   text-shadow:none !important;
@@ -227,9 +225,47 @@ header .status :not(button):not(.btn),
   text-shadow:none !important;
   opacity:1 !important;
 }
-/* スライダー数値やチェック横のテキストも黒 */
 .settings input, [data-settings] input,
 .settings .value, [data-settings] .value,
 .settings .unit,  [data-settings] .unit {
   color:#000 !important;
 }
+
+/* ====== Modal（ダイアログ）骨格と保険の上書き ====== */
+/* 基本の3分割：タイトル / 本文 / メニュー */
+.ci-modal__panel{
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  max-height: min(80vh, 560px);
+}
+
+/* 本文は必ず表示・スクロール可能に */
+.ci-modal__body{
+  display: block;
+  overflow: auto;
+  padding: 8px 0 0;
+}
+
+/* 設定モーダル内の文字は黒、ボタンは白 */
+#settingsModal, #settingsModal * {
+  text-shadow: none !important;
+}
+#settingsModal .ci-modal__title { color:#fff !important; } /* 題名は白のままでも可 */
+#settingsModal .ci-modal__body { color:#000 !important; }
+#settingsModal .ci-modal__body label,
+#settingsModal .ci-modal__body span,
+#settingsModal .ci-modal__body p,
+#settingsModal .ci-modal__body h3 {
+  color:#000 !important;
+}
+
+/* 本文が隠されるケースへの最終保険 */
+#settingsModal .ci-modal__body{ display:block !important; }
+
+/* モーダル内のボタン配色（既存のボタン規則を尊重） */
+#settingsModal .ci-modal__menu .btn { color:#fff !important; }
+
+/* もし既存CSSで「タイトル/メニュー以外を非表示」にしている場合の例外付与
+   （例： .ci-modal__panel > :not(.ci-modal__title):not(.ci-modal__menu){display:none;} ）
+   に勝つためのピンポイント上書き */
+#settingsModal .ci-modal__panel > .ci-modal__body { display:block !important; }
