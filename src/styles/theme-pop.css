@@ -1,18 +1,17 @@
-/* ===== Bright Pop Theme v3.2 (HUD/Settings 可読性強化 + Modal修正) ===== */
+/* ===== Bright Pop Theme v3.3 (Settings Modal Fix 完全版) ===== */
 :root {
-  --bg-top: #e1f5fe;        /* 明るい水色 */
-  --bg-bottom: #b3e5fc;     /* すこし濃い水色 */
+  --bg-top: #e1f5fe;
+  --bg-bottom: #b3e5fc;
   --text: #333;
-  --panel: #fff8d9;         /* HUDバッジ背景 */
+  --panel: #fff8d9;
   --shadow: 0 8px 24px rgba(0,0,0,.10);
 
-  /* カード/ボタン/バー */
-  --card-bg: #fffdf5;       /* 問題カードの背景 */
-  --card-border: #ffcc00;   /* カードの枠 */
+  --card-bg: #fffdf5;
+  --card-border: #ffcc00;
   --card-border-hover: #ffd84d;
-  --accent: #ff9800;        /* 発射ボタン */
-  --accent-2: #66bb6a;      /* Remainバー */
-  --alert: #ef5350;         /* Timeバー */
+  --accent: #ff9800;
+  --accent-2: #66bb6a;
+  --alert: #ef5350;
 }
 
 html, body {
@@ -23,7 +22,7 @@ html, body {
   background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
 }
 
-/* ===== HUD（上部ステータス） ===== */
+/* ===== HUD ===== */
 [data-hud], .hud, header .status, .top-bar {
   display: flex;
   flex-wrap: wrap;
@@ -41,11 +40,11 @@ html, body {
   border-radius: 999px;
   font-weight: 700;
   box-shadow: var(--shadow);
-  color: #000 !important;          /* ← HUD文字は黒固定 */
+  color: #000 !important;
   text-shadow: none !important;
 }
 
-/* Remain/Time の色差を強調 */
+/* Remain/Time */
 .badge-remain { background: #e9f7ee !important; }
 .badge-time   { background: #ffe9e9 !important; }
 
@@ -75,7 +74,7 @@ html, body {
   transform: translateY(-3px) scale(1.02);
 }
 
-/* ===== 回答パネル（下部） ===== */
+/* ===== 回答パネル ===== */
 #answer-panel, .answer-panel, .bottom-input {
   position: fixed;
   left: 50%;
@@ -180,7 +179,6 @@ button, .btn, button * {
 }
 
 /* ===== 暗いオーバーレイ上の文字だけ白固定 ===== */
-.overlay, .pause-overlay, .stage-clear, .modal-dark { }
 .overlay .overlay-text,
 .pause-overlay .pause-text,
 .stage-clear .stage-clear-title,
@@ -191,7 +189,7 @@ button, .btn, button * {
   text-shadow:0 3px 8px rgba(0,0,0,.55), 0 0 6px rgba(0,0,0,.55);
 }
 
-/* ===== HUD/回答パネル内はボタン以外すべて黒固定（SELECTED含む） ===== */
+/* ===== HUD/回答パネル内はボタン以外すべて黒固定 ===== */
 [data-hud] :not(button):not(.btn),
 .hud :not(button):not(.btn),
 header .status :not(button):not(.btn),
@@ -203,99 +201,44 @@ header .status :not(button):not(.btn),
   text-shadow: none !important;
 }
 
-/* ===== Settings（設定）画面の可読性（共通） ===== */
-.settings, [data-settings], .settings-panel, .settings-section, .settings-modal {
-  color:#000 !important;
-  text-shadow:none !important;
+/* ===== Settings Modal 可読性修正 ===== */
+#settingsModal, #settingsModal * {
+  text-shadow: none !important;
 }
-.settings .section-title,
-[data-settings] .section-title,
-.settings h1, .settings h2,
-[data-settings] h1, [data-settings] h2 {
-  color:#1b3a57 !important;   /* 見出しは濃い青 */
-  text-shadow:none !important;
-  opacity:1 !important;
-}
-.settings label, [data-settings] label,
-.settings small, [data-settings] small,
-.settings .desc, [data-settings] .desc,
-.settings .help, [data-settings] .help,
-.settings .hint, [data-settings] .hint {
-  color:#000 !important;
-  text-shadow:none !important;
-  opacity:1 !important;
-}
-.settings input, [data-settings] input,
-.settings .value, [data-settings] .value,
-.settings .unit,  [data-settings] .unit {
-  color:#000 !important;
-}
-
-/* ====== Modal（ダイアログ）骨格と保険の上書き ====== */
-/* 基本の3分割：タイトル / 本文 / メニュー */
-.ci-modal__panel{
+#settingsModal .ci-modal__panel {
   display: grid;
   grid-template-rows: auto 1fr auto;
   max-height: min(80vh, 560px);
 }
-
-/* 本文は必ず表示・スクロール可能に */
-.ci-modal__body{
-  display: block;
-  overflow: auto;
-  padding: 8px 0 0;
-}
-
-/* 設定モーダル内の文字は黒、ボタンは白 */
-#settingsModal, #settingsModal * {
-  text-shadow: none !important;
-}
-#settingsModal .ci-modal__title { color:#fff !important; } /* 題名は白のままでも可 */
-#settingsModal .ci-modal__body { color:#000 !important; }
-#settingsModal .ci-modal__body label,
-#settingsModal .ci-modal__body span,
-#settingsModal .ci-modal__body p,
-#settingsModal .ci-modal__body h3 {
-  color:#000 !important;
-}
-
-/* 本文が隠されるケースへの最終保険 */
-#settingsModal .ci-modal__body{ display:block !important; }
-
-/* モーダル内のボタン配色（既存のボタン規則を尊重） */
-#settingsModal .ci-modal__menu .btn { color:#fff !important; }
-
-/* もし既存CSSで「タイトル/メニュー以外を非表示」にしている場合の例外付与
-   （例： .ci-modal__panel > :not(.ci-modal__title):not(.ci-modal__menu){display:none;} ）
-   に勝つためのピンポイント上書き */
-#settingsModal .ci-modal__panel > .ci-modal__body { display:block !important; }
-
-
-/* === Settings modal fix: ensure readable text on dark panel === */
-#settingsModal .ci-modal__panel {
-  display: grid;
-  grid-template-rows: auto 1fr auto; /* タイトル / 本文 / メニュー */
-  max-height: min(80vh, 560px);
-}
-
 #settingsModal .ci-modal__title {
-  color: #fff !important; /* タイトルは白のまま */
+  color:#fff !important;
+}
+#settingsModal .ci-modal__panel > .ci-modal__body {
+  display:block !important;
+  overflow:auto;
+  padding-top:8px;
 }
 
-/* 本文のテキストはテーマの標準色（明るい）にする */
+/* 本文の文字色を明るく（暗背景対策） */
+#settingsModal {
+  --text: #e8e8e8; /* 明色トークン */
+}
 #settingsModal .ci-modal__body,
 #settingsModal .ci-modal__body label,
 #settingsModal .ci-modal__body span,
 #settingsModal .ci-modal__body p,
 #settingsModal .ci-modal__body h3 {
-  color: var(--text) !important;   /* ← ここがポイント。黒固定を解除 */
+  color: var(--text) !important;
   text-shadow: none !important;
 }
 
-/* 本文は必ず表示＆スクロール可能 */
-#settingsModal .ci-modal__panel > .ci-modal__body { display: block !important; }
-#settingsModal .ci-modal__body { overflow: auto; padding-top: 8px; }
-
-/* 入力系の見やすさ（お好みで） */
+/* 入力系アクセント */
 #settingsModal input[type="checkbox"],
-#settingsModal input[type="range"] { accent-color: var(--accent-2); }
+#settingsModal input[type="range"] {
+  accent-color: var(--accent-2);
+}
+
+/* ボタンは白文字維持 */
+#settingsModal .ci-modal__menu .btn {
+  color:#fff !important;
+}
