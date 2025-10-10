@@ -1,10 +1,10 @@
 /* ==========================================
- * patch-pop.js (safe v3)
+ * patch-pop.js (safe v3.1)
  * - 文字可読性の自動補正 (.on-dark / .on-light)
  * - Enterキーで発射（IME確定は除外）
  * - フォームsubmit→発射ボタンへ変換
  * - 既存DOMに合わせたセレクタ (#answer / #fire 対応)
- * - MutationObserverは rAF でデバウンス＆属性監視なし（無限ループ防止）
+ * - MutationObserverは rAF デバウンス（属性監視なし）
  * ========================================== */
 
 (function () {
@@ -22,7 +22,11 @@
   const yiq = ([r,g,b]) => (r*299 + g*587 + b*114) / 1000;
 
   const applyContrast = (el) => {
-    if (el.closest('[data-hud], .hud, header .status, .top-bar, #answer-panel, .answer-panel, .bottom-input')) return;
+    // HUD・回答パネル・設定画面は自動付与対象から除外
+    if (el.closest('[data-hud], .hud, header .status, .top-bar')) return;
+    if (el.closest('#answer-panel, .answer-panel, .bottom-input')) return;
+    if (el.closest('[data-settings], .settings, .settings-panel, .settings-section, .settings-modal')) return;
+
     // 背景色（透明なら親を辿る）
     let node = el, bg = '';
     while (node && node !== document && (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent')) {
@@ -31,7 +35,7 @@
     }
     const isDark = yiq(toRGB(bg)) < 150;
 
-    // 変更がある時だけクラス操作（無駄な attribute 変更を避ける）
+    // 変更がある時だけクラス操作（無駄を避ける）
     if (isDark) {
       if (!el.classList.contains('on-dark')) {
         el.classList.remove('on-light');
@@ -45,11 +49,11 @@
     }
   };
 
-  // スキャン対象
+  // スキャン対象（設定画面の .modal 見出しは除外）
   const targetsSelector = [
     '.problem-card', '.question', '.question-card',
     'button', '.btn', '.chip', '.pill',
-    '.overlay h1', '.overlay h2', '.modal h1', '.modal h2',
+    '.overlay h1', '.overlay h2',
     '.pause-text', '.stage-clear-title', '.modal-title'
   ].join(',');
 
@@ -57,7 +61,6 @@
     try {
       qa(targetsSelector).forEach(applyContrast);
     } catch (e) {
-      // 失敗してもアプリ自体は止めない
       console.error('[patch-pop] scan error', e);
     }
   };
@@ -110,7 +113,6 @@
     scan();
   };
 
-  // DOMContentLoaded 後に複数回呼んでおく（SPAや遅延描画対策）
   document.addEventListener('DOMContentLoaded', () => {
     init();
     setTimeout(init, 50);
@@ -118,8 +120,6 @@
   });
 
   // ---------- 変更監視（安全版） ----------
-  // attributes は監視しない（自分の class 付け替えでループするため）
-  // childList + subtree のみを rAF でデバウンス
   let scanPending = false;
   const mo = new MutationObserver(() => {
     if (scanPending) return;
@@ -133,7 +133,6 @@
       }
     });
   });
-  // 監視開始
   window.addEventListener('load', () => {
     try {
       mo.observe(document.body, { childList: true, subtree: true });
@@ -141,8 +140,6 @@
       console.warn('[patch-pop] observer start failed', e);
     }
   });
-
-  // ページ離脱時に監視停止（念のため）
   window.addEventListener('beforeunload', () => {
     try { mo.disconnect(); } catch {}
   });
