@@ -269,3 +269,33 @@ header .status :not(button):not(.btn),
    （例： .ci-modal__panel > :not(.ci-modal__title):not(.ci-modal__menu){display:none;} ）
    に勝つためのピンポイント上書き */
 #settingsModal .ci-modal__panel > .ci-modal__body { display:block !important; }
+
+
+/* === Settings modal fix: ensure readable text on dark panel === */
+#settingsModal .ci-modal__panel {
+  display: grid;
+  grid-template-rows: auto 1fr auto; /* タイトル / 本文 / メニュー */
+  max-height: min(80vh, 560px);
+}
+
+#settingsModal .ci-modal__title {
+  color: #fff !important; /* タイトルは白のまま */
+}
+
+/* 本文のテキストはテーマの標準色（明るい）にする */
+#settingsModal .ci-modal__body,
+#settingsModal .ci-modal__body label,
+#settingsModal .ci-modal__body span,
+#settingsModal .ci-modal__body p,
+#settingsModal .ci-modal__body h3 {
+  color: var(--text) !important;   /* ← ここがポイント。黒固定を解除 */
+  text-shadow: none !important;
+}
+
+/* 本文は必ず表示＆スクロール可能 */
+#settingsModal .ci-modal__panel > .ci-modal__body { display: block !important; }
+#settingsModal .ci-modal__body { overflow: auto; padding-top: 8px; }
+
+/* 入力系の見やすさ（お好みで） */
+#settingsModal input[type="checkbox"],
+#settingsModal input[type="range"] { accent-color: var(--accent-2); }
